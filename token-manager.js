@@ -35,6 +35,7 @@ class TokenManager extends HTMLElement {
                 add: document.createElement("button"),
                 remove: document.createElement("button"),
                 container: document.createElement("div"),
+                long_container: document.createElement("div"),
                 sub_container: document.createElement("div"),
                 ridx: masterRidx++
             }
@@ -46,8 +47,9 @@ class TokenManager extends HTMLElement {
             contents.y.type = "number";
             contents.x.value = 1;
             contents.y.value = 1;
-            contents.container.appendChild(contents.url);
-            contents.container.appendChild(contents.name);
+            contents.container.appendChild(contents.long_container);
+            contents.long_container.appendChild(contents.name);
+            contents.long_container.appendChild(contents.url);
             contents.container.appendChild(contents.sub_container);
             contents.sub_container.appendChild(contents.remove);
             contents.sub_container.appendChild(contents.x);
@@ -56,7 +58,12 @@ class TokenManager extends HTMLElement {
             contents.add.textContent = "+";
             contents.remove.textContent = "-";
             contents.container.className = "token";
+            contents.long_container.style.display = "flex";
             contents.sub_container.style.display = "flex";
+            contents.url.style.flex = "1 1 auto";
+            contents.name.style.flex = "1 1 auto";
+            contents.url.style.width = "40%";
+            contents.name.style.width = "40%";
             contents.x.style.flex = "1 1 auto";
             contents.y.style.flex = "1 1 auto";
             contents.add.style.flex = "1 1 auto";
