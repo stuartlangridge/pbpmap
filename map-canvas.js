@@ -2,6 +2,7 @@ class MapCanvas extends HTMLElement {
     constructor() {
         super();
 
+        let mc = this;
         const shadow = this.attachShadow({mode: 'open'});
         const container = document.createElement("div");
         this.container = container;
@@ -137,6 +138,7 @@ class MapCanvas extends HTMLElement {
         let dragStart,dragged;
 
         canvas.addEventListener('mousedown',function(evt) {
+            if (evt.buttons != 4) return; // middle mouse only
             lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
             lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
             lastX *= canvas.width / canvas.offsetWidth;
@@ -149,6 +151,15 @@ class MapCanvas extends HTMLElement {
             lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
             lastX *= canvas.width / canvas.offsetWidth;
             lastY *= canvas.height / canvas.offsetHeight;
+            if (dragStart){
+                var pt = that.ctx.transformedPoint(lastX,lastY);
+                that.ctx.translate(pt.x-dragStart.x,pt.y-dragStart.y);
+                document.dispatchEvent(new Event('request-map-redraw'));
+            }
+        }, false);
+
+        canvas.addEventListener('mouseup',function(evt){
+            dragStart = null;
         }, false);
 
         canvas.addEventListener('DOMMouseScroll', handleScroll, false);
