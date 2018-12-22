@@ -23,16 +23,18 @@ class PageGrid extends HTMLElement {
             let x1 = await pg.toolsElement.load("grid-x1") || 100;
             let x2 = await pg.toolsElement.load("grid-x2") || 180;
             let y = await pg.toolsElement.load("grid-y") || 120;
+            let step = 1;
+            if (e.shiftKey) step = 10;
             if (gridStartRadio.checked) {
-                if (e.which == 37) { x1 -= 1; x2 -= 1 }
-                else if (e.which == 38) { y -= 1 }
-                else if (e.which == 39) { x1 += 1; x2 += 1 }
-                else if (e.which == 40) { y += 1 }
+                if (e.which == 37) { x1 -= step; x2 -= step }
+                else if (e.which == 38) { y -= step }
+                else if (e.which == 39) { x1 += step; x2 += step }
+                else if (e.which == 40) { y += step }
             } else {
-                if (e.which == 37) { x2 -= 1 }
-                else if (e.which == 38) { x2 += 1 }
-                else if (e.which == 39) { x2 += 1 }
-                else if (e.which == 40) { x2 -= 1 }
+                if (e.which == 37) { x2 -= step }
+                else if (e.which == 38) { x2 += step }
+                else if (e.which == 39) { x2 += step }
+                else if (e.which == 40) { x2 -= step }
             }
             await pg.toolsElement.save("grid-x1", x1);
             await pg.toolsElement.save("grid-x2", x2);
