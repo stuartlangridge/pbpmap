@@ -71,6 +71,7 @@ class TokenManager extends HTMLElement {
 <li style="padding:0.2em 1em;margin:0"><label title="complex rules; look them up"><input style="display:inline" type="checkbox">Exhaustion</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="disadvantage on checks and attacking while it can see the source; can't willingly move closer"><input style="display:inline" type="checkbox">Frightened</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="speed 0"><input style="display:inline" type="checkbox">Grappled</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="double speed; AC+2; dex save at advantage; extra action"><input style="display:inline" type="checkbox">Hasted</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="can't take actions or reactions"><input style="display:inline" type="checkbox">Incapacitated</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="attacks at disadvantage; attacking at advantage"><input style="display:inline" type="checkbox">Invisible</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="incapacitated; fails str/dex saves; attacks at advantage; all melee hits are crits"><input style="display:inline" type="checkbox">Paralyzed</label></li>
@@ -100,58 +101,7 @@ class TokenManager extends HTMLElement {
                 summary: container.querySelector("summary"),
                 ridx: masterRidx++
             }
-            /*
-            let contents = {
-                url: document.createElement("input"),
-                name: document.createElement("input"),
-                x: document.createElement("input"),
-                y: document.createElement("input"),
-                flags: document.createElement("label"),
-                flags_button: document.createElement("button"),
-                remove: document.createElement("button"),
-                container: document.createElement("details"),
-                summary: document.createElement("summary"),
-                long_container: document.createElement("div"),
-                sub_container: document.createElement("div"),
-                ridx: masterRidx++
-            }
-            contents.url.type = "url";
-            contents.url.placeholder = "token image URL";
-            contents.name.type = "text";
-            contents.name.placeholder = "Participant name";
-            contents.x.type = "number";
-            contents.y.type = "number";
-            contents.x.value = 1;
-            contents.y.value = 1;
-            contents.summary.textContent = (values ? values.name : null) || "Participant";
-            contents.container.appendChild(contents.long_container);
-            contents.container.appendChild(contents.summary);
-            contents.long_container.appendChild(contents.name);
-            contents.long_container.appendChild(contents.url);
-            contents.container.appendChild(contents.sub_container);
-            contents.sub_container.appendChild(contents.remove);
-            contents.sub_container.appendChild(contents.x);
-            contents.sub_container.appendChild(contents.y);
-            contents.flags.appendChild(contents.flags_button);
-            contents.sub_container.appendChild(contents.flags);
-            contents.flags.style.position = "relative";
-            contents.flags_button.textContent = "Cnd";
-            contents.flags_button.style.width = "100%";
-            contents.remove.textContent = "-";
-            contents.container.className = "token";
-            contents.long_container.style.display = "flex"; 
-            contents.sub_container.style.display = "flex";
-            contents.url.style.flex = "1 1 auto";
-            contents.name.style.flex = "1 1 auto";
-            contents.url.style.width = "40%";
-            contents.name.style.width = "40%";
-            contents.x.style.flex = "1 1 auto";
-            contents.y.style.flex = "1 1 auto";
-            contents.flags.style.flex = "1 1 auto";
-            contents.remove.style.flex = "1 1 auto";
-            contents.x.style.width = "20%";
-            contents.y.style.width = "20%";
-            */
+
             contents.summary.textContent = (values ? values.name : null) || "Participant";
             tools.appendChild(contents.container);
             contents.url.addEventListener("input", serialise, false);
@@ -287,7 +237,7 @@ class TokenManager extends HTMLElement {
                 if (t.conditions.length > 0) {
                     let condstr = t.conditions.join("/");
                     condstr = shorten(condstr, 15);
-                    fontSize -= 4;
+                    fontSize -= 3;
                     ctx.font = fontSize + "px sans-serif";
                     metrics = ctx.measureText(condstr);
                     textBoxX = (xpos + gridSettings.size / 2) - (metrics.width / 2);
