@@ -124,7 +124,8 @@ class ExportImage extends HTMLElement {
                             url: t.url,
                             name: t.name,
                             x: t.x + 1 - dx,
-                            y: t.y + 1 - dy
+                            y: t.y + 1 - dy,
+                            conditions: t.conditions || []
                         }
                     })
                     container.style.display = "block";

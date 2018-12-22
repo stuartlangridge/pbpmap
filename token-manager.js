@@ -1,3 +1,19 @@
+function shorten(text, length) {
+    let rev = text.split("").reverse().join("");
+    let last = rev.length;
+    while (rev.length > length) {
+        if (/[aeiou]/.test(rev)) { rev = rev.replace(/[aeiou]/, ""); continue; }
+        if (/[cfhkmprtwy]/.test(rev)) { rev = rev.replace(/[cfhkmprtwy]/, ""); continue; }
+        if (/[bdgjlnqsvxz]/.test(rev)) { rev = rev.replace(/[bdgjlnqsvxz]/, ""); continue; }
+        if (/[A-Z]/.test(rev)) { rev = rev.replace(/[A-Z]/, ""); continue; }
+        break;
+    }
+    return rev.split("").reverse().join("");
+}
+console.assert(shorten("abcdefghij", 4) == "bdgj", "assertion 1");
+console.assert(shorten("abcd", 4) == "abcd", "assertion 2");
+console.assert(shorten("ABcdEfghiJ", 4) == "ABEJ", "assertion 3");
+console.assert(shorten("Exhaustion/Incapacitated/Stunned", 15) == "Exhstn/Ind/Snnd", "assertion 4");
 
 class TokenManager extends HTMLElement {
     constructor() {
@@ -7,17 +23,26 @@ class TokenManager extends HTMLElement {
         let p = document.createElement("div");
         p.innerHTML = '<a href="https://imgur.com/a/0hFdv">(imgur list)</a>';
         tools.appendChild(p);
+        let add_button = document.createElement("button");
+        add_button.textContent = "+";
+        add_button.style.float = "right";
+        p.appendChild(add_button);
+        add_button.addEventListener("click", addToken, false);
+
         let tm = this;
 
         function serialise() {
             let data = tokens.map(function(t) {
                 if (!t.url.validity.valid) return null;
-                return {
+                let ret = {
                     url: t.url.value,
                     name: t.name.value,
                     x: t.x.valueAsNumber,
                     y: t.y.valueAsNumber
                 }
+                ret.conditions = Array.from(t.flags_list.querySelectorAll("input"))
+                    .filter(i => i.checked).map(i => i.parentNode.textContent);
+                return ret;
             }).filter(function(t) { return t; })
             if (data.length) {
                 tm.toolsElement.save("tokens", data);
@@ -27,12 +52,62 @@ class TokenManager extends HTMLElement {
 
         let masterRidx = 1;
         function addToken(values) {
+            let html = `
+            <summary>Participant</summary>
+            <div style="display: flex;">
+                <input type="text" placeholder="Participant name" style="flex: 1 1 auto; width: 40%;">
+                <input type="url" placeholder="token image URL" style="flex: 1 1 auto; width: 40%;">
+            </div>
+            <div style="display: flex;">
+                <button style="flex: 1 1 auto;">-</button>
+                <input type="number" style="flex: 1 1 auto; width: 20%;">
+                <input type="number" style="flex: 1 1 auto; width: 20%;">
+                <label style="position: relative; flex: 1 1 auto;">
+                    <button style="width: 100%;">Cnd</button>
+                    <ul style="display: none; position: absolute; background: white; right: 0; margin: 2px 0 0 0; padding: 0; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 0 6px 0 rgba(0,0,0,0.1); list-style-type: none; white-space: nowrap;">
+<li style="padding:0.2em 1em;margin:0"><label title="can't see; attacks at advantage; attacking at disadvantage"><input style="display:inline" type="checkbox">Blinded</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="can't attack charmer; charmer has advantage on interactions"><input style="display:inline" type="checkbox">Charmed</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="can't hear"><input style="display:inline" type="checkbox">Deafened</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="complex rules; look them up"><input style="display:inline" type="checkbox">Exhaustion</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="disadvantage on checks and attacking while it can see the source; can't willingly move closer"><input style="display:inline" type="checkbox">Frightened</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="speed 0"><input style="display:inline" type="checkbox">Grappled</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="can't take actions or reactions"><input style="display:inline" type="checkbox">Incapacitated</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="attacks at disadvantage; attacking at advantage"><input style="display:inline" type="checkbox">Invisible</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; fails str/dex saves; attacks at advantage; all melee hits are crits"><input style="display:inline" type="checkbox">Paralyzed</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; speed 0; fails str/dex saves; resistant to all damage; immune to poison and disease"><input style="display:inline" type="checkbox">Petrified</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="attacking and checks at disadvantage"><input style="display:inline" type="checkbox">Poisoned</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="half movement to stand; melee attacks at advantage; ranged attacks at disadvantage; attacking at disadvantage"><input style="display:inline" type="checkbox">Prone</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="speed 0; attacks at advantage; attacking at disadvantage; dex saves at disadvantage"><input style="display:inline" type="checkbox">Restrained</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; fails str/dex saves; attacks at advantage"><input style="display:inline" type="checkbox">Stunned</label></li>
+<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; prone; fails str/dex saves; attacks at advantage; melee attacks auto-crit"><input style="display:inline" type="checkbox">Unconscious</label></li>
+                    </ul>
+                </label>
+            </div>
+            `;
+
+            let container = document.createElement("details");
+            container.innerHTML = html;
+            container.style.clear = "both";
+            let contents = {
+                container: container,
+                url: container.querySelectorAll("input")[1],
+                name: container.querySelectorAll("input")[0],
+                x: container.querySelectorAll("input")[2],
+                y: container.querySelectorAll("input")[3],
+                flags_button: container.querySelectorAll("button")[1],
+                flags_list: container.querySelector("ul"),
+                remove: container.querySelectorAll("button")[0],
+                summary: container.querySelector("summary"),
+                ridx: masterRidx++
+            }
+            /*
             let contents = {
                 url: document.createElement("input"),
                 name: document.createElement("input"),
                 x: document.createElement("input"),
                 y: document.createElement("input"),
-                add: document.createElement("button"),
+                flags: document.createElement("label"),
+                flags_button: document.createElement("button"),
                 remove: document.createElement("button"),
                 container: document.createElement("details"),
                 summary: document.createElement("summary"),
@@ -57,8 +132,11 @@ class TokenManager extends HTMLElement {
             contents.sub_container.appendChild(contents.remove);
             contents.sub_container.appendChild(contents.x);
             contents.sub_container.appendChild(contents.y);
-            contents.sub_container.appendChild(contents.add);
-            contents.add.textContent = "+";
+            contents.flags.appendChild(contents.flags_button);
+            contents.sub_container.appendChild(contents.flags);
+            contents.flags.style.position = "relative";
+            contents.flags_button.textContent = "Cnd";
+            contents.flags_button.style.width = "100%";
             contents.remove.textContent = "-";
             contents.container.className = "token";
             contents.long_container.style.display = "flex"; 
@@ -69,10 +147,12 @@ class TokenManager extends HTMLElement {
             contents.name.style.width = "40%";
             contents.x.style.flex = "1 1 auto";
             contents.y.style.flex = "1 1 auto";
-            contents.add.style.flex = "1 1 auto";
+            contents.flags.style.flex = "1 1 auto";
             contents.remove.style.flex = "1 1 auto";
             contents.x.style.width = "20%";
             contents.y.style.width = "20%";
+            */
+            contents.summary.textContent = (values ? values.name : null) || "Participant";
             tools.appendChild(contents.container);
             contents.url.addEventListener("input", serialise, false);
             contents.name.addEventListener("input", function() {
@@ -81,7 +161,6 @@ class TokenManager extends HTMLElement {
             }, false);
             contents.x.addEventListener("input", serialise, false);
             contents.y.addEventListener("input", serialise, false);
-            contents.add.addEventListener("click", addToken, false);
             contents.remove.addEventListener("click", function() {
                 if (tokens.length == 1) { return; }
                 if (!confirm("Remove " + contents.name.value + "?")) return;
@@ -89,11 +168,21 @@ class TokenManager extends HTMLElement {
                 tokens = tokens.filter(function(t) { return t.ridx != contents.ridx; })
                 serialise();
             }, false);
+            contents.flags_button.addEventListener("click", function() {
+                contents.flags_list.style.display = contents.flags_list.style.display == "none" ? "block" : "none";
+            });
+            contents.flags_list.addEventListener("change", serialise, false);
+
             if (values && values.url) {
                 contents.url.value = values.url;
                 contents.name.value = values.name;
                 contents.x.value = values.x;
                 contents.y.value = values.y;
+                if (values.conditions && Array.isArray(values.conditions)) {
+                    Array.from(contents.flags_list.querySelectorAll("input")).forEach(i => {
+                        if (values.conditions.includes(i.parentNode.textContent)) i.checked = true;
+                    })
+                }
             }
             tokens.push(contents);
         }
@@ -122,7 +211,9 @@ class TokenManager extends HTMLElement {
                     url: t.url.value,
                     name: t.name.value,
                     x: t.x.valueAsNumber,
-                    y: t.y.valueAsNumber
+                    y: t.y.valueAsNumber,
+                    conditions: Array.from(t.flags_list.querySelectorAll("input"))
+                    .filter(i => i.checked).map(i => i.parentNode.textContent)
                 }
             }));
         });
@@ -172,6 +263,13 @@ class TokenManager extends HTMLElement {
                 ctx.stroke();
                 ctx.restore();
 
+                if (t.conditions.length > 0) {
+                    ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
+                    ctx.lineWidth = 3;
+                    ctx.arc(xpos + (gridSettings.size / 2), ypos + (gridSettings.size / 2), gridSettings.size / 2, 0, Math.PI * 2, true);
+                    ctx.stroke();
+                }
+
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
                 let fontSize = Math.floor(gridSettings.size / 5);
@@ -185,6 +283,22 @@ class TokenManager extends HTMLElement {
                     metrics.width + padding + padding, fontSize + padding + padding);
                 ctx.fillStyle = "white";
                 ctx.fillText(t.name, textBoxX, textBoxY + padding + padding);
+
+                if (t.conditions.length > 0) {
+                    let condstr = t.conditions.join("/");
+                    condstr = shorten(condstr, 15);
+                    fontSize -= 4;
+                    ctx.font = fontSize + "px sans-serif";
+                    metrics = ctx.measureText(condstr);
+                    textBoxX = (xpos + gridSettings.size / 2) - (metrics.width / 2);
+                    textBoxY = ypos + 2;
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                    ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
+                        metrics.width + padding + padding, fontSize + padding + padding);
+                    ctx.fillStyle = "black";
+                    ctx.fillText(condstr, textBoxX, textBoxY + padding);
+                }
+
                 if (done) done();
             }
             var img;
