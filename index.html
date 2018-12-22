@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-width=1">
 <script src="remotestorage.js"></script>
 <script src="widget.js"></script>
 <script src="screen-manager.js"></script>
@@ -21,6 +22,19 @@ tool-dialogue {
     right: 5vw;
 }
 #remotestorage-widget { z-index: 20; position: absolute; }
+
+@media (max-width: 750px) {
+    tool-dialogue {
+        position: absolute;
+        width: 100vw;
+        bottom: 0;
+        left: 0;
+        top: auto;
+        right: auto;
+        overflow-y: auto;
+        max-height: 50vh;
+    }
+}
 
 </style>
 </head>
