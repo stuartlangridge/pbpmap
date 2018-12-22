@@ -72,7 +72,6 @@ class ExportImage extends HTMLElement {
                     gx2 = await that.toolsElement.load("grid-x2"),
                     gy = await that.toolsElement.load("grid-y");
                 let square = gx2 - gx1;
-                console.log(tlx, tly, brx, bry, gx1, gx2, gy);
 
                 let source = {w: (brx-tlx) + square, h: (bry-tly) + square, x:tlx, y:tly};
                 let required = {w: 600, h: 600};
