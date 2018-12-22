@@ -74,11 +74,11 @@ class MapCanvas extends HTMLElement {
         addInput.placeholder = "map URL";
         addInput.addEventListener("input", setInput, false);
 
-        let iv = setInterval(() => {
+        let iv = setInterval(async function() {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Add a map", [addInput]); 
-                let map = this.toolsElement.load("map");
+                mc.toolsElement = window.addTools("Add a map", [addInput]); 
+                let map = await mc.toolsElement.load("map");
                 if (map) { addInput.value = map; setInput(); }
             } else {
                 console.log("waiting in map canvas");

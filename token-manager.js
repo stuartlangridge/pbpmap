@@ -34,7 +34,8 @@ class TokenManager extends HTMLElement {
                 y: document.createElement("input"),
                 add: document.createElement("button"),
                 remove: document.createElement("button"),
-                container: document.createElement("div"),
+                container: document.createElement("details"),
+                summary: document.createElement("summary"),
                 long_container: document.createElement("div"),
                 sub_container: document.createElement("div"),
                 ridx: masterRidx++
@@ -47,7 +48,9 @@ class TokenManager extends HTMLElement {
             contents.y.type = "number";
             contents.x.value = 1;
             contents.y.value = 1;
+            contents.summary.textContent = (values ? values.name : null) || "Participant";
             contents.container.appendChild(contents.long_container);
+            contents.container.appendChild(contents.summary);
             contents.long_container.appendChild(contents.name);
             contents.long_container.appendChild(contents.url);
             contents.container.appendChild(contents.sub_container);
@@ -58,7 +61,7 @@ class TokenManager extends HTMLElement {
             contents.add.textContent = "+";
             contents.remove.textContent = "-";
             contents.container.className = "token";
-            contents.long_container.style.display = "flex";
+            contents.long_container.style.display = "flex"; 
             contents.sub_container.style.display = "flex";
             contents.url.style.flex = "1 1 auto";
             contents.name.style.flex = "1 1 auto";
@@ -72,7 +75,10 @@ class TokenManager extends HTMLElement {
             contents.y.style.width = "20%";
             tools.appendChild(contents.container);
             contents.url.addEventListener("input", serialise, false);
-            contents.name.addEventListener("input", serialise, false);
+            contents.name.addEventListener("input", function() {
+                contents.summary.textContent = contents.name.value;
+                serialise();
+            }, false);
             contents.x.addEventListener("input", serialise, false);
             contents.y.addEventListener("input", serialise, false);
             contents.add.addEventListener("click", addToken, false);
@@ -94,11 +100,11 @@ class TokenManager extends HTMLElement {
 
         let tokens = [];
 
-        let iv = setInterval(() => {
+        let iv = setInterval(async () => {
             if (window.addTools) {
                 clearInterval(iv);
                 this.toolsElement = window.addTools("Participants", [tools]);
-                let load_tokens = this.toolsElement.load("tokens");
+                let load_tokens = await this.toolsElement.load("tokens");
                 if (!Array.isArray(load_tokens)) load_tokens = [];
                 if (load_tokens.length == 0) {
                     addToken();
@@ -124,11 +130,11 @@ class TokenManager extends HTMLElement {
     }
 
 
-    renderTokens(ctx, tokensData, overrideGridSettings, mainDone) {
+    async renderTokens(ctx, tokensData, overrideGridSettings, mainDone) {
         let tm = this;
-        let gx1 = this.toolsElement.load("grid-x1"),
-            gx2 = this.toolsElement.load("grid-x2"),
-            gy = this.toolsElement.load("grid-y");
+        let gx1 = await this.toolsElement.load("grid-x1"),
+            gx2 = await this.toolsElement.load("grid-x2"),
+            gy = await this.toolsElement.load("grid-y");
         let gridSettings = {
             size: gx2 - gx1,
             xoffset: gx1 % (gx2 - gx1),

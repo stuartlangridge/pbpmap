@@ -18,11 +18,11 @@ class PageGrid extends HTMLElement {
         pair.appendChild(cb);
         pair.appendChild(lbl);
 
-        function kp(e) {
+        async function kp(e) {
             if ([37,38,39,40].indexOf(e.which) == -1) return;
-            let x1 = pg.toolsElement.load("grid-x1") || 100;
-            let x2 = pg.toolsElement.load("grid-x2") || 180;
-            let y = pg.toolsElement.load("grid-y") || 120;
+            let x1 = await pg.toolsElement.load("grid-x1") || 100;
+            let x2 = await pg.toolsElement.load("grid-x2") || 180;
+            let y = await pg.toolsElement.load("grid-y") || 120;
             if (gridStartRadio.checked) {
                 if (e.which == 37) { x1 -= 1; x2 -= 1 }
                 else if (e.which == 38) { y -= 1 }
@@ -34,9 +34,9 @@ class PageGrid extends HTMLElement {
                 else if (e.which == 39) { x2 += 1 }
                 else if (e.which == 40) { x2 -= 1 }
             }
-            pg.toolsElement.save("grid-x1", x1);
-            pg.toolsElement.save("grid-x2", x2);
-            pg.toolsElement.save("grid-y", y);
+            await pg.toolsElement.save("grid-x1", x1);
+            await pg.toolsElement.save("grid-x2", x2);
+            await pg.toolsElement.save("grid-y", y);
             document.dispatchEvent(new Event('request-map-redraw'));
         }
 
@@ -93,12 +93,12 @@ class PageGrid extends HTMLElement {
             }
         }, 50);
 
-        document.addEventListener("map-redraw", function(e) {
+        document.addEventListener("map-redraw", async function(e) {
             if (!pg.editing) return;
             let ctx = e.detail.ctx;
-            let x1 = pg.toolsElement.load("grid-x1") || 100;
-            let x2 = pg.toolsElement.load("grid-x2") || 180;
-            let y = pg.toolsElement.load("grid-y") || 120;
+            let x1 = await pg.toolsElement.load("grid-x1") || 100;
+            let x2 = await pg.toolsElement.load("grid-x2") || 180;
+            let y = await pg.toolsElement.load("grid-y") || 120;
             let diff = Math.abs(x2 - x1);
             ctx.fillStyle = "#f06";
             ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';

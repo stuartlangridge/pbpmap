@@ -21,14 +21,14 @@ class ExportArea extends HTMLElement {
         ea.canvas = null;
         ea.ctx = null;
 
-        cb.addEventListener("change", (e) => {
+        cb.addEventListener("change", async (e) => {
             ea.editing = cb.checked;
             if (cb.checked) {
                 ea.canvas.addEventListener('mousedown', md, false);
-                let tlx = ea.toolsElement.load("export-tlx");
-                let tly = ea.toolsElement.load("export-tly");
-                let brx = ea.toolsElement.load("export-brx");
-                let bry = ea.toolsElement.load("export-bry");
+                let tlx = await ea.toolsElement.load("export-tlx");
+                let tly = await ea.toolsElement.load("export-tly");
+                let brx = await ea.toolsElement.load("export-brx");
+                let bry = await ea.toolsElement.load("export-bry");
                 tlbr = [null, null];
                 if (tlx !== undefined) {
                     tlbr = [{x:tlx, y:tly}, {x:brx, y:bry}];
@@ -79,7 +79,7 @@ class ExportArea extends HTMLElement {
             tlbr = squaresFromPoints(startDrag, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
         }
-        function mu(e) {
+        async function mu(e) {
             ea.canvas.removeEventListener('mousemove', mm, false);
             ea.canvas.removeEventListener('mouseup', mu, false);
             let x = e.offsetX || (e.pageX - ea.canvas.offsetLeft);
@@ -87,21 +87,21 @@ class ExportArea extends HTMLElement {
             let pt = ea.ctx.transformedPoint(x, y);
             tlbr = squaresFromPoints(startDrag, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
-            ea.toolsElement.save("export-tlx", tlbr[0].x);
-            ea.toolsElement.save("export-tly", tlbr[0].y);
-            ea.toolsElement.save("export-brx", tlbr[1].x);
-            ea.toolsElement.save("export-bry", tlbr[1].y);
+            await ea.toolsElement.save("export-tlx", tlbr[0].x);
+            await ea.toolsElement.save("export-tly", tlbr[0].y);
+            await ea.toolsElement.save("export-brx", tlbr[1].x);
+            await ea.toolsElement.save("export-bry", tlbr[1].y);
         }
-        function md(e) {
+        async function md(e) {
             ea.canvas.addEventListener('mousemove', mm, false);
             ea.canvas.addEventListener('mouseup', mu, false);
             let x = e.offsetX || (e.pageX - ea.canvas.offsetLeft);
             let y = e.offsetY || (e.pageY - ea.canvas.offsetTop);
             let pt = ea.ctx.transformedPoint(x, y);
             startDrag = pt;
-            let gx1 = ea.toolsElement.load("grid-x1"),
-                gx2 = ea.toolsElement.load("grid-x2"),
-                gy = ea.toolsElement.load("grid-y");
+            let gx1 = await ea.toolsElement.load("grid-x1"),
+                gx2 = await ea.toolsElement.load("grid-x2"),
+                gy = await ea.toolsElement.load("grid-y");
             gridSettings = {
                 size: gx2 - gx1,
                 xoffset: gx1 % (gx2 - gx1),

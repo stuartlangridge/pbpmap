@@ -57,23 +57,22 @@ class ExportImage extends HTMLElement {
             container.querySelector("img").remove();
         })
 
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", async (e) => {
             // load map image
             var img = new Image();
             img.crossOrigin = "Anonymous";
-            img.src = this.toolsElement.load("map");
             let that = this;
-            img.onload = function() {
-
+            img.onload = async function() {
                 // calculate size of output canvas
-                let tlx = that.toolsElement.load("export-tlx"),
-                    tly = that.toolsElement.load("export-tly"),
-                    brx = that.toolsElement.load("export-brx"),
-                    bry = that.toolsElement.load("export-bry"),
-                    gx1 = that.toolsElement.load("grid-x1"),
-                    gx2 = that.toolsElement.load("grid-x2"),
-                    gy = that.toolsElement.load("grid-y");
+                let tlx = await that.toolsElement.load("export-tlx"),
+                    tly = await that.toolsElement.load("export-tly"),
+                    brx = await that.toolsElement.load("export-brx"),
+                    bry = await that.toolsElement.load("export-bry"),
+                    gx1 = await that.toolsElement.load("grid-x1"),
+                    gx2 = await that.toolsElement.load("grid-x2"),
+                    gy = await that.toolsElement.load("grid-y");
                 let square = gx2 - gx1;
+                console.log(tlx, tly, brx, bry, gx1, gx2, gy);
 
                 let source = {w: (brx-tlx) + square, h: (bry-tly) + square, x:tlx, y:tly};
                 let required = {w: 600, h: 600};
@@ -113,7 +112,7 @@ class ExportImage extends HTMLElement {
                 ctx.drawImage(img, source.x, source.y, source.w, source.h, dest.square, dest.square, dest.w, dest.h);
 
                 // draw tokens into canvas
-                let load_tokens = that.toolsElement.load("tokens");
+                let load_tokens = await that.toolsElement.load("tokens");
                 if (!Array.isArray(load_tokens)) load_tokens = [];
                 if (load_tokens.length > 0) {
                     let overrideGridSettings = {
@@ -138,6 +137,7 @@ class ExportImage extends HTMLElement {
                     });
                 }
             }
+            img.src = await this.toolsElement.load("map");
 
         }, false);
 

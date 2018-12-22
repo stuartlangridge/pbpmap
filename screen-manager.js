@@ -1,3 +1,9 @@
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 class ScreenManager extends HTMLElement {
     constructor() {
@@ -41,20 +47,9 @@ class ScreenManager extends HTMLElement {
         this.shadow.appendChild(this.container);
         this.shadow.appendChild(styles);
 
-        newmap.onsubmit = function(e) {
+        newmap.onsubmit = async function(e) {
             e.preventDefault();
-            let d = window.localStorage.getItem("pbp-map-data");
-            if (!d) d = "{}";
-            let jd = {};
-            try {
-                jd = JSON.parse(d);
-            } catch(e) {
-                console.log("Failed to load saved data", d, e);
-                jd = {};
-            }
-            let mapid = uuidv4();
-            jd[mapid] = {name: name.value || "Unknown"};
-            window.localStorage.setItem("pbp-map-data", JSON.stringify(jd));
+            let mapid = await sm.toolsElement.addMap({name: name.value || "Unknown"});
             location.href = "?" + mapid;
         }
 
@@ -66,47 +61,48 @@ class ScreenManager extends HTMLElement {
         returnlink.textContent = "or back to list";
         delreturn.appendChild(delbutton);
         delreturn.appendChild(returnlink);
-        delbutton.onclick = function(e) {
+        delbutton.onclick = async function(e) {
             e.preventDefault();
             if (!confirm("Really delete this map permanently?")) return;
-            sm.toolsElement.removeMap(location.search.substr(1));
+            await sm.toolsElement.removeMap(location.search.substr(1));
             location.href = "?";
         }
 
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Manage maps", [delreturn]);
+                sm.toolsElement = window.addTools("Manage maps", [delreturn]);
+                sm.loadList();
             }
         }, 50);
 
-        function uuidv4() {
-          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-        }
+    }
 
-        let d = window.localStorage.getItem("pbp-map-data");
-        if (!d) d = "{}";
-        let jd = {};
-        try {
-            jd = JSON.parse(d);
-        } catch(e) {
-            console.log("Failed to load saved data", d, e);
-            jd = {};
+    async loadList() {
+        let mode;
+        if (location.search.length < 2) {
+            return await this.showList();
+        } else {
+            if (this.toolsElement.isMapId(location.search.substr(1))) {
+                // do nothing; this is a legit map ID and will be displayed
+            } else {
+                return await this.showList();
+            }
         }
-        if (location.search.length < 2 || !jd[location.search.substr(1)]) {
-            sm.container.style.display = "flex";
-            Object.keys(jd).forEach(function(k) {
-                let li = document.createElement("li");
-                let a = document.createElement("a");
-                a.href = "?" + k;
-                a.textContent = jd[k].name || "Unknown";
-                li.appendChild(a);
-                sm.ul.appendChild(li);
-            })
-        }
+    }
+
+    async showList() {
+        this.container.style.display = "flex";
+        let that = this;
+        let maps = await this.toolsElement.getMaps();
+        maps.forEach(function(m) {
+            let li = document.createElement("li");
+            let a = document.createElement("a");
+            a.href = "?" + m.id;
+            a.textContent = m.name || "Unknown";
+            li.appendChild(a);
+            that.ul.appendChild(li);
+        })
     }
 }
 window.customElements.define("screen-manager", ScreenManager);
