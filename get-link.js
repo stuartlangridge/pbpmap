@@ -2,10 +2,11 @@
 class GetLink extends HTMLElement {
     constructor() {
         super();
+        let gl = this;
 
         let button = document.createElement("button");
         button.onclick = function() {
-            console.log("ok");
+            gl.toolsElement.doRemoteStorageWidget();
         }
         button.textContent = "Connect remote storage";
         let a = document.createElement("a");

@@ -41,9 +41,13 @@ class ScreenManager extends HTMLElement {
         name.required = true;
         newmap.appendChild(name);
         newmap.appendChild(go);
+        const connect = document.createElement("button");
+        connect.onclick = function() { sm.toolsElement.doRemoteStorageWidget(this.container); }
+        connect.textContent = "Connect remote storage";
 
         this.container.appendChild(this.ul);
         this.container.appendChild(newmap);
+        this.container.appendChild(connect);
         this.shadow.appendChild(this.container);
         this.shadow.appendChild(styles);
 

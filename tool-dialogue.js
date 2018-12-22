@@ -118,6 +118,7 @@ class ToolDialogue extends HTMLElement {
         let allMaps = await this.rsclient.getAll("maps/");
         let maps = [];
         for (var k in allMaps) {
+            if (!allMaps[k].name) continue;
             allMaps[k].id = k;
             maps.push(allMaps[k]);
         }
@@ -127,6 +128,10 @@ class ToolDialogue extends HTMLElement {
         let mapid = uuidv4();
         await this.rsclient.storeObject("mapdata", "maps/" + mapid, mapdata);
         return mapid;
+    }
+    doRemoteStorageWidget() {
+        const widget = new Widget(this.remoteStorage);
+        widget.attach();
     }
 }
 window.customElements.define("tool-dialogue", ToolDialogue);
