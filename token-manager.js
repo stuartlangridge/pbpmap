@@ -197,20 +197,20 @@ class TokenManager extends HTMLElement {
                 ctx.shadowBlur = 5;
                 ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
                 ctx.shadowColor = "black";
-                ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
+                ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                 ctx.fillStyle = "black";
                 ctx.fill();
 
                 ctx.beginPath();
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
+                ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                 ctx.closePath();
                 ctx.clip();
 
                 ctx.drawImage(img, grab.x, grab.y, grab.size, grab.size, xpos, ypos, containedSize, containedSize);
 
-                ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
+                ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 4;
                 ctx.stroke();
@@ -219,7 +219,7 @@ class TokenManager extends HTMLElement {
                 if (t.conditions.length > 0) {
                     ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
                     ctx.lineWidth = 3;
-                    ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
+                    ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                     ctx.stroke();
                 }
 
