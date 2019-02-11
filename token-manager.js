@@ -184,30 +184,33 @@ class TokenManager extends HTMLElement {
         if (overrideGridSettings) gridSettings = overrideGridSettings;
         function nextImage(t, done) {
             function loadit(img) {
-                let xpos = gridSettings.xoffset + (t.x * gridSettings.size);
-                let ypos = gridSettings.xoffset + (t.y * gridSettings.size);
+                let margin = 2;
+                let xpos = gridSettings.xoffset + (t.x * gridSettings.size) + margin;
+                let ypos = gridSettings.xoffset + (t.y * gridSettings.size) + margin;
                 let grab = {size: Math.min(img.naturalWidth, img.naturalHeight)};
                 grab.x = Math.floor(img.naturalWidth / 2 - grab.size / 2);
                 grab.y = Math.floor(img.naturalHeight / 2 - grab.size / 2);
+
+                let containedSize = gridSettings.size - margin - margin;
 
                 ctx.beginPath();
                 ctx.shadowBlur = 5;
                 ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
                 ctx.shadowColor = "black";
-                ctx.arc(xpos + (gridSettings.size / 2), ypos + (gridSettings.size / 2), gridSettings.size / 2, 0, Math.PI * 2, true);
+                ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
                 ctx.fillStyle = "black";
                 ctx.fill();
 
                 ctx.beginPath();
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(xpos + (gridSettings.size / 2), ypos + (gridSettings.size / 2), gridSettings.size / 2, 0, Math.PI * 2, true);
+                ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
                 ctx.closePath();
                 ctx.clip();
 
-                ctx.drawImage(img, grab.x, grab.y, grab.size, grab.size, xpos, ypos, gridSettings.size, gridSettings.size);
+                ctx.drawImage(img, grab.x, grab.y, grab.size, grab.size, xpos, ypos, containedSize, containedSize);
 
-                ctx.arc(xpos + (gridSettings.size / 2), ypos + (gridSettings.size / 2), gridSettings.size / 2, 0, Math.PI * 2, true);
+                ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 4;
                 ctx.stroke();
@@ -216,19 +219,19 @@ class TokenManager extends HTMLElement {
                 if (t.conditions.length > 0) {
                     ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
                     ctx.lineWidth = 3;
-                    ctx.arc(xpos + (gridSettings.size / 2), ypos + (gridSettings.size / 2), gridSettings.size / 2, 0, Math.PI * 2, true);
+                    ctx.arc(xpos + (containedSize / 2), ypos + (containedSize / 2), containedSize / 2, 0, Math.PI * 2, true);
                     ctx.stroke();
                 }
 
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
-                let fontSize = Math.floor(gridSettings.size / 5);
+                let fontSize = Math.floor(containedSize / 5);
                 let padding = 3;
                 ctx.font = fontSize + "px sans-serif";
                 let metrics = ctx.measureText(t.name);
                 ctx.fillStyle = "black";
-                let textBoxX = (xpos + gridSettings.size / 2) - (metrics.width / 2);
-                let textBoxY = ypos + gridSettings.size - fontSize;
+                let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2);
+                let textBoxY = ypos + containedSize - fontSize;
                 ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
                     metrics.width + padding + padding, fontSize + padding + padding);
                 ctx.fillStyle = "white";
@@ -240,7 +243,7 @@ class TokenManager extends HTMLElement {
                     fontSize -= 3;
                     ctx.font = fontSize + "px sans-serif";
                     metrics = ctx.measureText(condstr);
-                    textBoxX = (xpos + gridSettings.size / 2) - (metrics.width / 2);
+                    textBoxX = (xpos + containedSize / 2) - (metrics.width / 2);
                     textBoxY = ypos + 2;
                     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                     ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
