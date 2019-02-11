@@ -230,7 +230,7 @@ class TokenManager extends HTMLElement {
                 ctx.font = fontSize + "px sans-serif";
                 let metrics = ctx.measureText(t.name);
                 ctx.fillStyle = "black";
-                let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2);
+                let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
                 let textBoxY = ypos + containedSize - fontSize;
                 ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
                     metrics.width + padding + padding, fontSize + padding + padding);
@@ -243,7 +243,7 @@ class TokenManager extends HTMLElement {
                     fontSize -= 3;
                     ctx.font = fontSize + "px sans-serif";
                     metrics = ctx.measureText(condstr);
-                    textBoxX = (xpos + containedSize / 2) - (metrics.width / 2);
+                    textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
                     textBoxY = ypos + 2;
                     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                     ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
