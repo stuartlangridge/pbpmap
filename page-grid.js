@@ -24,7 +24,8 @@ class PageGrid extends HTMLElement {
             let x2 = await pg.toolsElement.load("grid-x2") || 180;
             let y = await pg.toolsElement.load("grid-y") || 120;
             let step = 1;
-            if (e.shiftKey) step = 10;
+            if (e.shiftKey) step *= 10;
+            if (e.ctrlKey) step *= 10;
             if (gridStartRadio.checked) {
                 if (e.which == 37) { x1 -= step; x2 -= step }
                 else if (e.which == 38) { y -= step }
