@@ -186,7 +186,7 @@ class TokenManager extends HTMLElement {
             function loadit(img) {
                 let margin = 2;
                 let xpos = gridSettings.xoffset + (t.x * gridSettings.size) + margin;
-                let ypos = gridSettings.xoffset + (t.y * gridSettings.size) + margin;
+                let ypos = gridSettings.yoffset + (t.y * gridSettings.size) + margin;
                 let grab = {size: Math.min(img.naturalWidth, img.naturalHeight)};
                 grab.x = Math.floor(img.naturalWidth / 2 - grab.size / 2);
                 grab.y = Math.floor(img.naturalHeight / 2 - grab.size / 2);
@@ -227,6 +227,7 @@ class TokenManager extends HTMLElement {
                 ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
                 let fontSize = Math.floor(containedSize / 5);
                 let padding = 3;
+                fontSize = Math.max(fontSize, 8);
                 ctx.font = fontSize + "px sans-serif";
                 let metrics = ctx.measureText(t.name);
                 ctx.fillStyle = "black";
