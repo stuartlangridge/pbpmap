@@ -54,7 +54,7 @@ class ExportArea extends HTMLElement {
             if (!ea.editing) return;
             if (tlbr[0]) {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-                ctx.fillRect(tlbr[0].x, tlbr[0].y, tlbr[1].x - tlbr[0].x, tlbr[1].y - tlbr[0].y);
+                ctx.fillRect(tlbr[0].x + gridSettings.xoffset, tlbr[0].y + gridSettings.yoffset, tlbr[1].x - tlbr[0].x, tlbr[1].y - tlbr[0].y);
             }
         });
 
@@ -71,7 +71,7 @@ class ExportArea extends HTMLElement {
             return [{x:tlxs, y:tlys}, {x:brxs, y:brys}];
         }
 
-        let startDrag, gridSettings;
+        let startDrag, gridSettings = {xoffset:0, yoffset:0};
         function mm(e) {
             let x = e.offsetX || (e.pageX - ea.canvas.offsetLeft);
             let y = e.offsetY || (e.pageY - ea.canvas.offsetTop);
@@ -87,10 +87,10 @@ class ExportArea extends HTMLElement {
             let pt = ea.ctx.transformedPoint(x, y);
             tlbr = squaresFromPoints(startDrag, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
-            await ea.toolsElement.save("export-tlx", tlbr[0].x);
-            await ea.toolsElement.save("export-tly", tlbr[0].y);
-            await ea.toolsElement.save("export-brx", tlbr[1].x);
-            await ea.toolsElement.save("export-bry", tlbr[1].y);
+            await ea.toolsElement.save("export-tlx", tlbr[0].x + gridSettings.xoffset);
+            await ea.toolsElement.save("export-tly", tlbr[0].y + gridSettings.yoffset);
+            await ea.toolsElement.save("export-brx", tlbr[1].x + gridSettings.xoffset);
+            await ea.toolsElement.save("export-bry", tlbr[1].y + gridSettings.yoffset);
         }
         async function md(e) {
             ea.canvas.addEventListener('mousemove', mm, false);
@@ -103,10 +103,10 @@ class ExportArea extends HTMLElement {
                 gx2 = await ea.toolsElement.load("grid-x2"),
                 gy = await ea.toolsElement.load("grid-y");
             gridSettings = {
-                size: gx2 - gx1,
-                xoffset: gx1 % (gx2 - gx1),
-                yoffset: gy % (gx2 - gx1)
+                size: Math.abs(gx2 - gx1)
             };
+            gridSettings.xoffset = gx1 % gridSettings.size;
+            gridSettings.yoffset = gy % gridSettings.size;
             tlbr = squaresFromPoints(pt, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
         }

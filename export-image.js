@@ -71,71 +71,95 @@ class ExportImage extends HTMLElement {
                     gx1 = await that.toolsElement.load("grid-x1"),
                     gx2 = await that.toolsElement.load("grid-x2"),
                     gy = await that.toolsElement.load("grid-y");
-                let square = gx2 - gx1;
+                let square = Math.abs(gx2 - gx1);
+                let gridSettingsXOffset = gx1 % square;
+                let gridSettingsYOffset = gy % square;
 
-                let source = {w: (brx-tlx) + square, h: (bry-tly) + square, x:tlx, y:tly};
-                let required = {w: 600, h: 600};
-                let dest = {w: source.w, h: source.h, square: square};
-                if (dest.w > required.w) {
-                    dest.h *= required.w / dest.w;
-                    dest.square *= required.w / dest.w;
-                    dest.w = required.w;
-                }
-                if (dest.h > required.h) {
-                    dest.w *= required.h / dest.h;
-                    dest.square *= required.h / dest.h;
-                    dest.h = required.h;
-                }
-                canvas.width = dest.w;
-                canvas.height = dest.h;
-                ctx.fillStyle = "#004";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                let widthOfReal = brx - tlx;
+                let heightOfReal = bry - tly;
 
-                // draw letters into canvas
-                ctx.font = (dest.square/2) + "px sans-serif";
-                ctx.fillStyle = "#ccc";
-                let xsquares = Math.floor(dest.w / dest.square);
-                for (var i=1; i<xsquares; i++) {
-                    let letter = String.fromCharCode(64 + i);
-                    let metrics = ctx.measureText(letter);
-                    ctx.fillText(letter, i * dest.square + (dest.square / 2) - (metrics.width / 2), dest.square * 0.7);
-                }
-                let ysquares = Math.floor(dest.h / dest.square);
-                for (i=1; i<ysquares; i++) {
-                    let s = i.toString();
-                    let metrics = ctx.measureText(s);
-                    ctx.fillText(s, dest.square / 2 - metrics.width / 2, i * dest.square + (dest.square * 0.7));
-                }
+                // create a canvas snippet which is just the export area and render tokens into it
+                let mapSectionCanvas = document.createElement("canvas");
+                let mapSectionCtx = mapSectionCanvas.getContext("2d");
+                mapSectionCanvas.width = widthOfReal;
+                mapSectionCanvas.height = heightOfReal;
 
-                // draw map into canvas
-                ctx.drawImage(img, source.x, source.y, source.w, source.h, dest.square, dest.square, dest.w, dest.h);
+                // first render the right section of the map into our canvas
+                mapSectionCtx.drawImage(img, tlx, tly, widthOfReal, heightOfReal, 0, 0, widthOfReal, heightOfReal);
 
-                // draw tokens into canvas
+                // now get the tokens
                 let load_tokens = await that.toolsElement.load("tokens");
                 if (!Array.isArray(load_tokens)) load_tokens = [];
-                if (load_tokens.length > 0) {
-                    let overrideGridSettings = {
-                        xoffset: 0, yoffset: 0, size: dest.square
-                    }
-                    let dx = Math.floor(source.x / square);
-                    let dy = Math.floor(source.y / square);
-                    let tokens = load_tokens.map(function(t) {
-                        return {
-                            url: t.url,
-                            name: t.name,
-                            x: t.x + 1 - dx,
-                            y: t.y + 1 - dy,
-                            conditions: t.conditions || []
-                        }
-                    })
-                    container.style.display = "block";
-                    let out = new Image();
-                    out.src = "ajax-loader.gif";
-                    container.appendChild(out);
-                    document.querySelector("token-manager").renderTokens(ctx, tokens, overrideGridSettings, function() {
-                        out.src = canvas.toDataURL("image/png");
-                    });
+                let overrideGridSettings = {xoffset: 0, yoffset: 0, size: square};
+
+                // and fiddle their positions so they're counted from the top left of
+                // our export area, not from the top left of the whole map
+                let exportSquaresLeft = (tlx- gridSettingsXOffset) / square;
+                let exportSquaresTop = (tly - gridSettingsYOffset) / square;
+                let movedTokens = load_tokens.map(function(t) {
+                    return {
+                        url: t.url,
+                        name: t.name,
+                        x: t.x - exportSquaresLeft,
+                        y: t.y - exportSquaresTop,
+                        conditions: t.conditions || []
+                    };
+                })
+
+                // render the new tokens into our canvas
+                await that.callTokenManagerToRenderTokens(mapSectionCtx, movedTokens, overrideGridSettings);
+                
+                // now, create a new canvas which has the numbers/letters on it
+                let withLettersCanvas = document.createElement("canvas");
+                withLettersCanvas.width = mapSectionCanvas.width + square + square;
+                withLettersCanvas.height = mapSectionCanvas.height + square + square;
+                let withLettersCtx = withLettersCanvas.getContext("2d");
+                withLettersCtx.fillStyle = "#004";
+                withLettersCtx.fillRect(0, 0, withLettersCanvas.width, withLettersCanvas.height);
+
+                let widthInSquares = Math.floor(widthOfReal / square);
+                let heightInSquares = Math.floor(heightOfReal / square);
+                withLettersCtx.font = (square/2) + "px sans-serif";
+                withLettersCtx.fillStyle = "#ccc";
+                for (var i=1; i<widthInSquares+1; i++) {
+                    let letter = String.fromCharCode(64 + i);
+                    let metrics = ctx.measureText(letter);
+                    withLettersCtx.fillText(letter, i * square + (square / 2) - (metrics.width / 2), square * 0.7);
+                    withLettersCtx.fillText(letter, i * square + (square / 2) - (metrics.width / 2), (square * 0.7) + (square * heightInSquares) + square);
                 }
+                for (i=1; i<heightInSquares+1; i++) {
+                    let s = i.toString();
+                    let metrics = ctx.measureText(s);
+                    withLettersCtx.fillText(s, square / 2 - metrics.width / 2, i * square + (square * 0.7));
+                    withLettersCtx.fillText(s, (square / 2 - metrics.width / 2) + (square * widthInSquares) + square, i * square + (square * 0.7));
+                }
+
+                // and render the map canvas with tokens into it
+                withLettersCtx.drawImage(mapSectionCanvas, 0, 0, widthOfReal, heightOfReal, square, square, widthOfReal, heightOfReal);
+
+                // make a new scaled canvas to be no bigger than our maximum square
+                let maxOutputSize = 800;
+                let oCanvas = document.createElement("canvas");
+                let oCtx = oCanvas.getContext("2d");
+                if (widthOfReal > heightOfReal) {
+                    oCanvas.height = Math.floor(withLettersCanvas.height * maxOutputSize / withLettersCanvas.width);
+                    oCanvas.width = maxOutputSize;
+                } else {
+                    oCanvas.width = Math.floor(withLettersCanvas.width * maxOutputSize / withLettersCanvas.height);
+                    oCanvas.height = maxOutputSize;
+                }
+
+                // and render our lettered canvas into it
+                oCtx.drawImage(withLettersCanvas, 0, 0, withLettersCanvas.width, withLettersCanvas.height, 0, 0, oCanvas.width, oCanvas.height);
+
+                // get an image from our canvas which now has tokens in
+                let out = new Image();
+                out.src = oCanvas.toDataURL("image/png");
+
+                // show the container, and put the image in it
+                container.style.display = "block";
+                container.appendChild(out);
+
             }
             img.src = await this.toolsElement.load("map");
 
@@ -149,5 +173,13 @@ class ExportImage extends HTMLElement {
         }, 50);
 
     }
+
+    async callTokenManagerToRenderTokens(ctx, tokens, overrideGridSettings) {
+        return new Promise((resolve, reject) => {
+            document.querySelector("token-manager").renderTokens(ctx, tokens, overrideGridSettings, function() {
+                resolve();
+            });
+        })
+    }    
 }
 window.customElements.define("export-image", ExportImage);
