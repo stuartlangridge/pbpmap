@@ -47,7 +47,7 @@ class TokenManager extends HTMLElement {
                 populateTokenDatalist();
             }
             let scr = document.createElement("script");
-            scr.src = "https://api.imgur.com/3/album/0hFdv/images?callback=loadImgurTokenList&client_id=pbpmap10";
+            scr.src = "https://api.imgur.com/3/album/0hFdv/images?callback=loadImgurTokenList&client_id=a7c79752a12bbaa";
             document.body.appendChild(scr);
         } else {
             populateTokenDatalist();
