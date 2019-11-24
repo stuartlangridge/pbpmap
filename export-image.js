@@ -138,7 +138,7 @@ class ExportImage extends HTMLElement {
                 withLettersCtx.drawImage(mapSectionCanvas, 0, 0, widthOfReal, heightOfReal, square, square, widthOfReal, heightOfReal);
 
                 // make a new scaled canvas to be no bigger than our maximum square
-                let maxOutputSize = 800;
+                let maxOutputSize = 1200;
                 let oCanvas = document.createElement("canvas");
                 let oCtx = oCanvas.getContext("2d");
                 if (widthOfReal > heightOfReal) {

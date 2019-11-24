@@ -21,13 +21,37 @@ class TokenManager extends HTMLElement {
 
         let tools = document.createElement("div");
         let p = document.createElement("div");
-        p.innerHTML = '<a href="https://imgur.com/a/0hFdv">(imgur list)</a>';
+        //p.innerHTML = '<a href="https://imgur.com/a/0hFdv">(imgur list)</a>';
         tools.appendChild(p);
         let add_button = document.createElement("button");
         add_button.textContent = "+";
         add_button.style.float = "right";
         p.appendChild(add_button);
         add_button.addEventListener("click", addToken, false);
+
+        let datalist = document.createElement("datalist");
+        datalist.setAttribute("id", "imgur-tokens-datalist");
+        function populateTokenDatalist() {
+            console.log("tokens list is", window.loadedImgurTokenList);
+            window.loadedImgurTokenList.data.forEach(function(img) {
+                let opt = document.createElement("option");
+                opt.text = img.title;
+                opt.value = img.link;
+                datalist.appendChild(opt);
+            })
+        }
+        p.appendChild(datalist);
+        if (!window.loadedImgurTokenList) {
+            window.loadImgurTokenList = function(tokens) {
+                window.loadedImgurTokenList = tokens;
+                populateTokenDatalist();
+            }
+            let scr = document.createElement("script");
+            scr.src = "https://api.imgur.com/3/album/0hFdv/images?callback=loadImgurTokenList&client_id=pbpmap10";
+            document.body.appendChild(scr);
+        } else {
+            populateTokenDatalist();
+        }
 
         let tm = this;
 
@@ -56,7 +80,7 @@ class TokenManager extends HTMLElement {
             <summary>Participant</summary>
             <div style="display: flex;">
                 <input type="text" placeholder="Participant name" style="flex: 1 1 auto; width: 40%;">
-                <input type="url" placeholder="token image URL" style="flex: 1 1 auto; width: 40%;">
+                <input type="url" placeholder="token image URL" style="flex: 1 1 auto; width: 40%;" list="imgur-tokens-datalist">
             </div>
             <div style="display: flex;">
                 <button style="flex: 1 1 auto;">-</button>
