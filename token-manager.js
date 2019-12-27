@@ -139,18 +139,24 @@ class TokenManager extends HTMLElement {
             async function setCoords(el, x, y) {
                 let tlx = await tm.toolsElement.load("export-tlx"),
                     tly = await tm.toolsElement.load("export-tly"),
+                    brx = await tm.toolsElement.load("export-brx"),
+                    bry = await tm.toolsElement.load("export-bry"),
                     gx1 = await tm.toolsElement.load("grid-x1"),
                     gx2 = await tm.toolsElement.load("grid-x2"),
                     gy = await tm.toolsElement.load("grid-y");
                 let square = Math.abs(gx2 - gx1);
                 let gridSettingsXOffset = gx1 % square;
                 let gridSettingsYOffset = gy % square;
+                let widthOfReal = brx - tlx;
+                let heightOfReal = bry - tly;
                 let exportSquaresLeft = (tlx- gridSettingsXOffset) / square;
                 let exportSquaresTop = (tly - gridSettingsYOffset) / square;
+                let exportSquaresWidth = widthOfReal / square;
+                let exportSquaresHeight = heightOfReal / square;
                 let coordx = contents.x.valueAsNumber - exportSquaresLeft + 1;
                 let coordy = contents.y.valueAsNumber - exportSquaresTop + 1;
                 let coordtext = String.fromCharCode(64 + coordx) + coordy;
-                if (coordx < 1 || coordy < 1) {
+                if (coordx < 1 || coordy < 1 || coordx > exportSquaresWidth || coordy > exportSquaresHeight) {
                     coordtext = "??";
                 }
                 el.textContent = coordtext;
