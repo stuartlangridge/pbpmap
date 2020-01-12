@@ -123,13 +123,13 @@ class ExportImage extends HTMLElement {
                 withLettersCtx.fillStyle = "#ccc";
                 for (var i=1; i<widthInSquares+1; i++) {
                     let letter = String.fromCharCode(64 + i);
-                    let metrics = ctx.measureText(letter);
+                    let metrics = withLettersCtx.measureText(letter);
                     withLettersCtx.fillText(letter, i * square + (square / 2) - (metrics.width / 2), square * 0.7);
                     withLettersCtx.fillText(letter, i * square + (square / 2) - (metrics.width / 2), (square * 0.7) + (square * heightInSquares) + square);
                 }
                 for (i=1; i<heightInSquares+1; i++) {
                     let s = i.toString();
-                    let metrics = ctx.measureText(s);
+                    let metrics = withLettersCtx.measureText(s);
                     withLettersCtx.fillText(s, square / 2 - metrics.width / 2, i * square + (square * 0.7));
                     withLettersCtx.fillText(s, (square / 2 - metrics.width / 2) + (square * widthInSquares) + square, i * square + (square * 0.7));
                 }
