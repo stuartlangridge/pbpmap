@@ -28,6 +28,19 @@ class TokenManager extends HTMLElement {
         add_button.style.float = "right";
         p.appendChild(add_button);
         add_button.addEventListener("click", addToken, false);
+        let copy_button = document.createElement("select");
+        let copy_button_root = document.createElement("option");
+        copy_button_root.text = "⎘";
+        copy_button.appendChild(copy_button_root);
+        copy_button.setAttribute("title", "Copy participants from another map");
+        copy_button.style.float = "right";
+        copy_button.style.overflow = "hidden";
+        copy_button.style.width = "50px";
+        copy_button.style.whiteSpace = "nowrap";
+        copy_button.style.textOverflow = "ellipsis";
+        p.appendChild(copy_button);
+        copy_button.addEventListener("change", copyParticipants, false);
+        
 
         let datalist = document.createElement("datalist");
         datalist.setAttribute("id", "imgur-tokens-datalist");
@@ -54,6 +67,30 @@ class TokenManager extends HTMLElement {
         }
 
         let tm = this;
+
+        async function populateCopyButton(copy_button) {
+            let maps = await tm.toolsElement.getMaps();
+            maps.forEach(m => {
+                if (!m.tokens) return;
+                let opt = document.createElement("option");
+                opt.text = m.name;
+                opt.value = m.id;
+                opt.title = m.name + "\n(" + m.tokens.map(t => t.name).join(", ") + ")";
+                opt.style.overflow = "hidden";
+                opt.style.textOverflow = "ellipsis";
+                opt.style.width = "100px";
+                copy_button.appendChild(opt);
+            })
+        }
+        async function copyParticipants(e) {
+            let mid = this.options[this.selectedIndex].value;
+            this.selectedIndex = 0;
+            let maps = await tm.toolsElement.getMaps();
+            let selmap = maps.filter(m => { return m.id == mid; })
+            if (selmap.length != 1) { console.log("Unexpectedly got", selmap.length, "maps; bailing"); return; }
+            if (!selmap[0].tokens) return;
+            selmap[0].tokens.forEach(t => { addToken(t); });
+        }
 
         function serialise() {
             let data = tokens.map(function(t) {
@@ -210,6 +247,7 @@ class TokenManager extends HTMLElement {
                 } else {
                     load_tokens.forEach(addToken);
                 }
+                populateCopyButton(copy_button);
             }
         }, 50);
 
