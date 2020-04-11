@@ -5,9 +5,10 @@ class ToolDialogue extends HTMLElement {
         this.shadow = this.attachShadow({mode: 'open'});
         this.container = document.createElement("div");
         this.container.id = "container";
-        this.container.innerHTML = "<h1>Tools</h1>";
+        this.container.innerHTML = "<h1>Tools <span>👻</span></h1>";
         const styles = document.createElement("style");
         styles.textContent = `
+            h1 span { float: right; }
             h1, h2 {
                 padding: 0;
                 font-size: 0.8em;
@@ -40,6 +41,12 @@ class ToolDialogue extends HTMLElement {
         `;
         this.shadow.appendChild(this.container);
         this.shadow.appendChild(styles);
+
+        let dialogueHidden = false;
+        this.container.querySelector("h1").onclick = () => {
+            this.style.opacity = dialogueHidden ? 1.0 : 0.1;
+            dialogueHidden = !dialogueHidden;
+        }
 
         this.mapId = "ONE";
         this.remoteStorage = new RemoteStorage();
