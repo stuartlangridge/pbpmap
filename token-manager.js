@@ -124,8 +124,8 @@ class TokenManager extends HTMLElement {
                 <input type="number" style="flex: 1 1 auto; width: 20%;">
                 <input type="number" style="flex: 1 1 auto; width: 20%;">
                 <label style="position: relative; flex: 1 1 auto;">
-                    <button style="width: 100%;border-width: 0; background: transparent">Cnd</button>
-                    <ul style="display: none; position: absolute; background: white; right: 0; margin: 2px 0 0 0; padding: 0; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 0 6px 0 rgba(0,0,0,0.1); list-style-type: none; white-space: nowrap;">
+                    <button style="width: 100%; border-width: 0; background: transparent">Cnd</button>
+                    <ul style="display: none; position: fixed; background-clip: padding-box; background-color: white; top: 50%; left: 50%; height: 80vh; width: 40vw; min-width: 400px; border: 1000px solid rgba(128, 128, 128, 0.8); transform: translateX(-50%) translateY(-50%); margin: 2px 0 0 0; padding: 0; list-style-type: none; white-space: nowrap;">
 <li style="padding:0.2em 1em;margin:0"><label title="can't see; attacks at advantage; attacking at disadvantage"><input style="display:inline" type="checkbox">Blinded</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="attacks on you at disadvantage"><input style="display:inline" type="checkbox">Blurred</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="can't attack charmer; charmer has advantage on interactions"><input style="display:inline" type="checkbox">Charmed</label></li>
