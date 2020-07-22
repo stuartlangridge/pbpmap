@@ -109,6 +109,22 @@ class ExportImage extends HTMLElement {
                 // render the new tokens into our canvas
                 await that.callTokenManagerToRenderTokens(mapSectionCtx, movedTokens, overrideGridSettings);
                 
+                // and get the effects
+                let load_effects = await that.toolsElement.load("effects");
+                if (!Array.isArray(load_effects)) load_effects = [];
+                // and fiddle their positions so they're counted from the top left of
+                // our export area, not from the top left of the whole map
+                let movedEffects = load_effects.map(function(t) {
+                    return {
+                        name: t.name,
+                        x: t.x - exportSquaresLeft,
+                        y: t.y - exportSquaresTop
+                    };
+                })
+
+                // render the new tokens into our canvas
+                await that.callBattlefieldEffectsToRenderEffects(mapSectionCtx, movedEffects, overrideGridSettings);
+                
                 // now, create a new canvas which has the numbers/letters on it
                 let withLettersCanvas = document.createElement("canvas");
                 withLettersCanvas.width = mapSectionCanvas.width + square + square;
@@ -177,6 +193,15 @@ class ExportImage extends HTMLElement {
     async callTokenManagerToRenderTokens(ctx, tokens, overrideGridSettings) {
         return new Promise((resolve, reject) => {
             document.querySelector("token-manager").renderTokens(ctx, tokens, overrideGridSettings, function() {
+                resolve();
+            });
+        })
+    }    
+
+    async callBattlefieldEffectsToRenderEffects(ctx, effects, overrideGridSettings) {
+        return new Promise((resolve, reject) => {
+            // note we call with alpha 1.0 so darkness actually is impenetrable on the export image
+            document.querySelector("battlefield-effects").renderEffects(ctx, effects, 1.0, overrideGridSettings, function() {
                 resolve();
             });
         })
