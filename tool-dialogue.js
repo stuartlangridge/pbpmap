@@ -37,15 +37,23 @@ class ToolDialogue extends HTMLElement {
                 height: 80vh;
                 overflow-y: auto;
                 overflow-x: hidden;
+                user-select: none;
+            }
+            #container.ghostly {
+                opacity: 0.1;
+            }
+            #container.ghostly * {
+                pointer-events: none;
+            }
+            #container.ghostly h1 {
+                pointer-events: auto
             }
         `;
         this.shadow.appendChild(this.container);
         this.shadow.appendChild(styles);
 
-        let dialogueHidden = false;
         this.container.querySelector("h1").onclick = () => {
-            this.style.opacity = dialogueHidden ? 1.0 : 0.1;
-            dialogueHidden = !dialogueHidden;
+            this.container.classList.toggle("ghostly");
         }
 
         this.mapId = "ONE";
