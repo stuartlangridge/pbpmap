@@ -119,12 +119,12 @@ class TokenManager extends HTMLElement {
                 <input type="text" placeholder="Participant name" style="flex: 1 1 auto; width: 40%;">
                 <input type="url" placeholder="token image URL" style="flex: 1 1 auto; width: 40%;" list="imgur-tokens-datalist">
             </div>
-            <div style="display: flex;">
-                <button style="flex: 1 1 auto;">-</button>
+            <div style="display: flex; align-items: center">
+                <button style="flex: 1 1 auto; border-width: 0; background: transparent">-</button>
                 <input type="number" style="flex: 1 1 auto; width: 20%;">
                 <input type="number" style="flex: 1 1 auto; width: 20%;">
                 <label style="position: relative; flex: 1 1 auto;">
-                    <button style="width: 100%;">Cnd</button>
+                    <button style="width: 100%;border-width: 0; background: transparent">Cnd</button>
                     <ul style="display: none; position: absolute; background: white; right: 0; margin: 2px 0 0 0; padding: 0; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 0 6px 0 rgba(0,0,0,0.1); list-style-type: none; white-space: nowrap;">
 <li style="padding:0.2em 1em;margin:0"><label title="can't see; attacks at advantage; attacking at disadvantage"><input style="display:inline" type="checkbox">Blinded</label></li>
 <li style="padding:0.2em 1em;margin:0"><label title="attacks on you at disadvantage"><input style="display:inline" type="checkbox">Blurred</label></li>
