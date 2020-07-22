@@ -45,7 +45,6 @@ class BattlefieldEffects extends HTMLElement {
                     out.push(details);
                 }
             })
-            console.log("serialise", out);
             effects = out;
             document.dispatchEvent(new Event('request-map-redraw'));
             bfe.toolsElement.save("effects", out);
