@@ -59,11 +59,15 @@ class ScreenManager extends HTMLElement {
 
         let delreturn = document.createElement("div");
         let delbutton = document.createElement("button");
+        delbutton.style.width = "100%";
         delbutton.textContent = "Delete this map";
         let returnlink = document.createElement("a");
         returnlink.href = "?";
-        returnlink.textContent = "or back to list";
+        returnlink.textContent = "or return to list →";
+        returnlink.style.display = "block";
+        returnlink.style.textAlign = "right";
         delreturn.appendChild(delbutton);
+        delreturn.appendChild(document.createTextNode(" "));
         delreturn.appendChild(returnlink);
         delbutton.onclick = async function(e) {
             e.preventDefault();
