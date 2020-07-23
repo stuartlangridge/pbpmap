@@ -2,8 +2,16 @@
 class BattlefieldEffects extends HTMLElement {
     constructor() {
         super();
+        let pbtn = document.createElement("p");
+        let effect_templates = document.createElement("select");
+        let tope = document.createElement("option");
+        tope.text = "💥";
+        effect_templates.appendChild(tope);
         let btn = document.createElement("button");
         btn.appendChild(document.createTextNode("+"));
+        pbtn.appendChild(effect_templates);
+        pbtn.appendChild(btn);
+        pbtn.id = "pbfe";
         let bfe = this;
 
         let effects = [];
@@ -13,6 +21,11 @@ class BattlefieldEffects extends HTMLElement {
         const styles = document.createElement("style");
         const buttonColour = "#ccc";
         styles.textContent = `
+        #pbfe {
+            text-align: right;
+            margin: 0;
+        }
+        #pbfe select { max-width: 4em; }
         #bfe form { /* a single BFE */
             display: grid;
             grid-gap: 2px;
@@ -102,10 +115,33 @@ class BattlefieldEffects extends HTMLElement {
             addEffect();
         }, false);
 
+        const EFFECT_TEMPLATES = {
+            "darkness, 15ft radius": {
+                colour: "#000000", "size": "15ft", opacity: "█", shape: "◯", x: 1, y: 1
+            },
+            "fog cloud": {
+                colour: "#888888", "size": "20ft", opacity: "▓", shape: "◯", x: 1, y: 1
+            },
+            "cloudkill": {
+                colour: "#88ff00", "size": "20ft", opacity: "▒", shape: "◯", x: 1, y: 1
+            }
+        }
+        Object.keys(EFFECT_TEMPLATES).forEach(etn => {
+            let opt = document.createElement("option");
+            opt.text = etn;
+            effect_templates.appendChild(opt);
+        })
+        effect_templates.addEventListener("change", e => {
+            let ne_name = effect_templates.options[effect_templates.selectedIndex].value;
+            let ne = EFFECT_TEMPLATES[ne_name];
+            addEffect(ne);
+            effect_templates.selectedIndex = 0;
+        }, false);
+
         let iv = setInterval(async () => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Battlefield effects", [btn, bfe.container]);
+                this.toolsElement = window.addTools("Battlefield effects", [pbtn, bfe.container]);
                 let load_effects = await this.toolsElement.load("effects");
                 if (!Array.isArray(load_effects)) load_effects = [];
                 if (load_effects.length > 0) {
