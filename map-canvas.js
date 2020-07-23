@@ -15,7 +15,12 @@ class MapCanvas extends HTMLElement {
         const that = this;
 
         this.redrawEvent = new CustomEvent('map-redraw', { detail: { ctx: this.ctx }});
-        document.addEventListener("request-map-redraw", (e) => { this.redraw(); }, false);
+        document.addEventListener("request-map-redraw", (e) => {
+            let that = this;
+            requestAnimationFrame(function() {
+                that.redraw.call(that);
+            }); // debounces
+        }, false);
 
         const styles = document.createElement("style");
         styles.textContent = `
