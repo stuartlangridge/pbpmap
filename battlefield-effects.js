@@ -141,7 +141,7 @@ class BattlefieldEffects extends HTMLElement {
         let iv = setInterval(async () => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Battlefield effects", [pbtn, bfe.container]);
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Battlefield effects", [pbtn, bfe.container]);
                 let load_effects = await this.toolsElement.load("effects");
                 if (!Array.isArray(load_effects)) load_effects = [];
                 if (load_effects.length > 0) {

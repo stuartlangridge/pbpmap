@@ -7,6 +7,7 @@ class ExportImage extends HTMLElement {
         let ctx = canvas.getContext("2d");
         let btn = document.createElement("button");
         btn.appendChild(document.createTextNode("Export to image"));
+        btn.style.width = "100%";
         let ei = this;
 
         let container = document.createElement("div");
@@ -183,7 +184,7 @@ class ExportImage extends HTMLElement {
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Export to image", [btn]);
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Export to image", [btn], true);
             }
         }, 50);
 

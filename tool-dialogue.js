@@ -48,6 +48,24 @@ class ToolDialogue extends HTMLElement {
             #container.ghostly h1 {
                 pointer-events: auto
             }
+            #container > details > summary { list-style: none; }
+            #container > details > summary > h2::after {
+                content: "»";
+                display: block;
+                float: right;
+                transition: transform 100ms ease-out;
+            }
+            #container > details[open] > summary > h2::after {
+                transform: rotate(90deg);
+            }
+            #container > details[open] > summary ~ * {
+                animation: fadesweep 150ms ease-in-out;
+            }
+            @keyframes fadesweep {
+                0% { opacity: 0; transform: translateX(-10px); }
+                100% { opacity: 1; transform: translateX(0); }
+            }
+
         `;
         this.shadow.appendChild(this.container);
         this.shadow.appendChild(styles);
@@ -63,15 +81,20 @@ class ToolDialogue extends HTMLElement {
         this.rsclient = this.remoteStorage.scope('/pbpmap/');
         this.rsclient.declareType("mapdata", {}); // no spec for maps
 
-        window.addTools = (ht, tools) => { return this.addTools(ht, tools); }
+        window.addTools = (ht, tools, openByDefault) => { return this.addTools(ht, tools, openByDefault); }
     }
 
-    addTools(headingText, tools) {
+    addTools(headingText, tools, openByDefault) {
+        const accordion = document.createElement("details");
+        const summary = document.createElement("summary");
         const heading = document.createElement("h2");
         heading.textContent = headingText;
-        this.container.appendChild(heading);
-        if (tools && Array.isArray(tools)) tools.forEach(t => this.container.appendChild(t));
-        return this;
+        summary.appendChild(heading);
+        if (openByDefault) accordion.open = true;
+        accordion.appendChild(summary);
+        this.container.appendChild(accordion);
+        if (tools && Array.isArray(tools)) tools.forEach(t => accordion.appendChild(t));
+        return [this, accordion];
     }
 
     getDataSync() {

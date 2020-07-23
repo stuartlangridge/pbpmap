@@ -9,6 +9,7 @@ class GetLink extends HTMLElement {
             gl.toolsElement.doRemoteStorageWidget();
         }
         button.textContent = "Connect remote storage";
+        button.style.width = "100%";
         let a = document.createElement("a");
         a.href = "#";
         a.textContent = "";
@@ -16,7 +17,7 @@ class GetLink extends HTMLElement {
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Save maps", [button, a]);
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Save maps", [button, a]);
             }
         }, 50);
     }

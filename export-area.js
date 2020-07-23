@@ -35,7 +35,7 @@ class ExportArea extends HTMLElement {
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Export area", [pair]); 
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Export area", [pair]); 
             }
         }, 50);
 

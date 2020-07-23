@@ -82,9 +82,13 @@ class MapCanvas extends HTMLElement {
         let iv = setInterval(async function() {
             if (window.addTools) {
                 clearInterval(iv);
-                mc.toolsElement = window.addTools("Add a map", [addInput]); 
+                [mc.toolsElement, mc.toolDialogSection] = window.addTools("Add a map", [addInput], false); 
                 let map = await mc.toolsElement.load("map");
-                if (map) { addInput.value = map; setInput(); }
+                if (map) {
+                    addInput.value = map; setInput();
+                } else {
+                    mc.toolDialogSection.open = true;
+                }
             } else {
                 console.log("waiting in map canvas");
             }

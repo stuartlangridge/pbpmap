@@ -90,7 +90,7 @@ class PageGrid extends HTMLElement {
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                this.toolsElement = window.addTools("Map grid", [pair, gridStart, gridWidth]); 
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Map grid", [pair, gridStart, gridWidth]); 
             } else {
                 console.log("waiting in page grid");
             }
