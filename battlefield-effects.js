@@ -132,13 +132,41 @@ class BattlefieldEffects extends HTMLElement {
             return "grey";
         }
 
-        function coordsToGridRef(x, y) {
-            return "A1";
+        async function coordsToGridRef(x, y) {
+            let tlx = await bfe.toolsElement.load("export-tlx"),
+                tly = await bfe.toolsElement.load("export-tly"),
+                brx = await bfe.toolsElement.load("export-brx"),
+                bry = await bfe.toolsElement.load("export-bry"),
+                gx1 = await bfe.toolsElement.load("grid-x1"),
+                gx2 = await bfe.toolsElement.load("grid-x2"),
+                gy = await bfe.toolsElement.load("grid-y");
+            let square = Math.abs(gx2 - gx1);
+            let gridSettingsXOffset = gx1 % square;
+            let gridSettingsYOffset = gy % square;
+            let widthOfReal = brx - tlx;
+            let heightOfReal = bry - tly;
+            let exportSquaresLeft = (tlx- gridSettingsXOffset) / square;
+            let exportSquaresTop = (tly - gridSettingsYOffset) / square;
+            let exportSquaresWidth = widthOfReal / square;
+            let exportSquaresHeight = heightOfReal / square;
+            let coordx = x - exportSquaresLeft + 1;
+            let coordy = y - exportSquaresTop + 1;
+            let coordtext = String.fromCharCode(64 + coordx) + coordy;
+            if (coordx < 1) {
+                coordtext = "←";
+            } else if (coordy < 1) {
+                coordtext = "↑"
+            } else if (coordx > exportSquaresWidth) {
+                coordtext = "→";
+            } else if (coordy > exportSquaresHeight) {
+                coordtext = "↓";
+            }
+            return coordtext;
         }
 
         async function serialise() {
             let out = [];
-            Array.prototype.slice.call(bfe.container.querySelectorAll("form")).forEach(d => {
+            Array.prototype.slice.call(bfe.container.querySelectorAll("form")).forEach(async d => {
                 let item = {
                     x: d.querySelector(".x").valueAsNumber,
                     y: d.querySelector(".y").valueAsNumber,
@@ -151,7 +179,7 @@ class BattlefieldEffects extends HTMLElement {
                 // update heading for this item
                 d.querySelector(".heading").firstChild.nodeValue = colourToName(item.colour) + 
                     " " + item.size + " " + item.shape;
-                d.querySelector(".heading output").value = coordsToGridRef(item.x, item.y);
+                d.querySelector(".heading output").value = await coordsToGridRef(item.x, item.y);
             });
             effects = out;
             document.dispatchEvent(new Event('request-map-redraw'));
