@@ -41,19 +41,16 @@ class ExportArea extends HTMLElement {
 
         let tlbr = [null, null];
         document.addEventListener("map-redraw", async function(e) {
-            console.log("redraw export box");
             let ctx = e.detail.ctx;
             ea.canvas = ctx.canvas;
             ea.ctx = ctx;
             if (ea.editing) {
-            console.log("redraw export box: editing");
                 // draw the box while editing it
                 if (tlbr[0]) {
                     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
                     ctx.fillRect(tlbr[0].x + gridSettings.xoffset, tlbr[0].y + gridSettings.yoffset, tlbr[1].x - tlbr[0].x, tlbr[1].y - tlbr[0].y);
                 }
             } else {
-            console.log("redraw export box; not editing", tlbr);
                 // drop the box corners to show where the export area is
                 if (!tlbr[0]) {
                     await calculateTlbr();
