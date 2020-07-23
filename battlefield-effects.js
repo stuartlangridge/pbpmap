@@ -149,7 +149,8 @@ class BattlefieldEffects extends HTMLElement {
                 }
                 out.push(item);
                 // update heading for this item
-                d.querySelector(".heading").firstChild.nodeValue = colourToName(item.colour) + " " + item.size;
+                d.querySelector(".heading").firstChild.nodeValue = colourToName(item.colour) + 
+                    " " + item.size + " " + item.shape;
                 d.querySelector(".heading output").value = coordsToGridRef(item.x, item.y);
             });
             effects = out;
@@ -236,7 +237,7 @@ class BattlefieldEffects extends HTMLElement {
                 serialise();
             }, false);
 
-            let holdingIV;
+            let holdingIV, holdingCount;
             html.up.addEventListener("click", () => { 
                 html.y.value = Math.max(html.y.valueAsNumber - 1, 1); serialise();
                 clearInterval(holdingIV);
@@ -255,12 +256,16 @@ class BattlefieldEffects extends HTMLElement {
             }, false);
             // hold the mouse down to move fast
             function hold(button, changeElement, amount) {
+                holdingCount = 0;
                 holdingIV = setInterval(() => {
+                    holdingCount += 1;
+                    if (holdingCount < 70 && holdingCount % 10 != 0) return;
+                    if (holdingCount < 140 && holdingCount % 5 != 0) return;
                     let nv = changeElement.valueAsNumber + amount;
                     if (nv < 1) nv = 1;
                     changeElement.value = nv;
                     serialise();
-                }, 350);
+                }, 20);
             }
             html.up.addEventListener("mousedown", () => { hold(html.up, html.y, -1); }, false);
             html.up.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
