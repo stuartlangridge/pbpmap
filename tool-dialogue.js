@@ -34,6 +34,7 @@ class ToolDialogue extends HTMLElement {
                 border: 1px solid #ccc;
                 box-sizing: border-box;
                 padding: 3px;
+                height: 100vh;
                 overflow-y: auto;
                 overflow-x: hidden;
                 user-select: none;
