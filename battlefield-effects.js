@@ -6,9 +6,97 @@ class BattlefieldEffects extends HTMLElement {
         btn.appendChild(document.createTextNode("+"));
         let bfe = this;
 
-        let effects = []; //[{name: "15ft darkness", x: 8, y: 3}, {name: "15ft darkness", x: 11, y: 13}];
+        let effects = [];
 
         bfe.container = document.createElement("div");
+        bfe.container.id = "bfe";
+        const styles = document.createElement("style");
+        const buttonColour = "#ccc";
+        styles.textContent = `
+        #bfe form { /* a single BFE */
+            display: grid;
+            grid-gap: 2px;
+            margin-top: 2px;
+            margin-bottom: 2px;
+            grid-template-columns: repeat(6, 1fr);
+            width: 100%;
+        }
+        #bfe form .heading {
+            grid-column: 1 / span 6; grid-row: 1;
+            background: ${buttonColour};
+            color: #333;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 2px;
+        }
+        #bfe form .x { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #bfe form .y { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #bfe form .left { grid-column: 1; grid-row: 2 / span 2; }
+        #bfe form .up { grid-column: 2; grid-row: 2; }
+        #bfe form .down { grid-column: 2; grid-row: 3; }
+        #bfe form .right { grid-column: 3; grid-row: 2 / span 2; }
+        #bfe form .colour_label { grid-column: 4; grid-row: 2; }
+        #bfe form .opacity_label { grid-column: 5; grid-row: 2; }
+        #bfe form .shape_label { grid-column: 4; grid-row: 3; }
+        #bfe form .size_label { grid-column: 5; grid-row: 3; }
+        #bfe form .remove { grid-column: 6; grid-row: 2 / span 2; }
+
+        #bfe form .coords { background: #333; color: white; padding: 0 4px; margin-left: 4px; }
+        #bfe form .colour { display: none; } /* hide so label can summon it */
+        #bfe form button, #bfe form input, #bfe form label {
+            padding: 0.2em 0.5em;
+            border-width: 0;
+            background: ${buttonColour};
+            min-width: 30px;
+            min-height: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        #bfe form span[class$='_inner'] {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: block;
+            pointer-events: none;
+            background: ${buttonColour};
+        }
+        #bfe form select {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+        }
+        #bfe form label[data-inner-value]::after {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            content: attr(data-inner-value);
+            pointer-events: none;
+            font-size: 12px;
+        }
+        #bfe form span.colour_inner { background-color: black; }
+        #bfe form select {
+            display: block;
+            font-size: 16px; /* required for ios safari to not zoom */
+            font-family: sans-serif;
+            font-weight: 700;
+            color: #444;
+            line-height: 1.3;
+            padding: .6em 1.4em .5em .8em;
+            width: 100%;
+            max-width: 100%; /* useful when width is set to anything other than 100% */
+            box-sizing: border-box;
+            margin: 0;
+            border-width: 0;
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: ${buttonColour};
+            background-image: linear-gradient(to bottom, ${buttonColour} 0%,${buttonColour} 100%);
+        }
+        `;
+        bfe.container.appendChild(styles);
 
         btn.addEventListener("click", async (e) => {
             addEffect();
@@ -20,97 +108,215 @@ class BattlefieldEffects extends HTMLElement {
                 this.toolsElement = window.addTools("Battlefield effects", [btn, bfe.container]);
                 let load_effects = await this.toolsElement.load("effects");
                 if (!Array.isArray(load_effects)) load_effects = [];
-                console.log("loaded effects", load_effects);
                 if (load_effects.length > 0) {
                     load_effects.forEach(addEffect);
+                    document.dispatchEvent(new Event('request-map-redraw'));
                 }
             }
         }, 50);
 
         document.addEventListener("map-redraw", function(e) {
             let ctx = e.detail.ctx;
-            if (effects.length > 0) bfe.renderEffects(ctx, effects, 0.6);
+            if (effects.length > 0) bfe.renderEffects(ctx, effects, 0.9); // reduced opacity in GM view
         });
+
+        function colourToName(col) {
+            let r = parseInt(col.slice(1, 3), 16);
+            let g = parseInt(col.slice(3, 5), 16);
+            let b = parseInt(col.slice(5, 7), 16);
+            if (r == 0 && g == 0 && b == 0) return "black";
+            if (r == 255 && g == 255 && b == 255) return "white";
+            if (r > g && r > b) return "red";
+            if (g > r && g > b) return "green";
+            if (b > r && b > g) return "blue";
+            return "grey";
+        }
+
+        function coordsToGridRef(x, y) {
+            return "A1";
+        }
 
         async function serialise() {
             let out = [];
-            Array.prototype.slice.call(bfe.container.querySelectorAll("div")).forEach(d => {
-                let details = {};
-                let nums = d.querySelectorAll("input[type=number]");
-                let sel = d.querySelector("select");
-                details.name = sel.options[sel.selectedIndex].value;
-                details.x = nums[0].valueAsNumber;
-                details.y = nums[1].valueAsNumber;
-                if (!isNaN(details.x) && !isNaN(details.y)) {
-                    out.push(details);
+            Array.prototype.slice.call(bfe.container.querySelectorAll("form")).forEach(d => {
+                let item = {
+                    x: d.querySelector(".x").valueAsNumber,
+                    y: d.querySelector(".y").valueAsNumber,
+                    colour: d.querySelector(".colour").value,
+                    opacity: d.querySelector(".opacity").options[d.querySelector(".opacity").selectedIndex].value,
+                    shape: d.querySelector(".shape").options[d.querySelector(".shape").selectedIndex].value,
+                    size: d.querySelector(".size").options[d.querySelector(".size").selectedIndex].value
                 }
-            })
+                out.push(item);
+                // update heading for this item
+                d.querySelector(".heading").firstChild.nodeValue = colourToName(item.colour) + " " + item.size;
+                d.querySelector(".heading output").value = coordsToGridRef(item.x, item.y);
+            });
             effects = out;
             document.dispatchEvent(new Event('request-map-redraw'));
             bfe.toolsElement.save("effects", out);
         }
 
         async function addEffect(details) {
-            let remove = document.createElement("button");
-            remove.textContent = "-";
-            remove.style.borderWidth = "0";
-            let sel = document.createElement("select");
-            Object.keys(bfe.EFFECTS).forEach(e => {
-                if (e.indexOf(" ") > -1) {
-                    let opt = document.createElement("option");
-                    opt.text = e;
-                    sel.appendChild(opt);
+            // create elements
+            let html = {
+                heading: document.createElement("h3"),
+                x: document.createElement("input"),
+                y: document.createElement("input"),
+                left: document.createElement("button"),
+                right: document.createElement("button"),
+                up: document.createElement("button"),
+                down: document.createElement("button"),
+                colour: document.createElement("input"),
+                colour_label: document.createElement("label"),
+                colour_inner: document.createElement("span"),
+                opacity: document.createElement("select"),
+                opacity_label: document.createElement("label"),
+                opacity_inner: document.createElement("span"),
+                shape: document.createElement("select"),
+                shape_label: document.createElement("label"),
+                shape_inner: document.createElement("span"),
+                size: document.createElement("select"),
+                size_label: document.createElement("label"),
+                size_inner: document.createElement("span"),
+                remove: document.createElement("button"),
+                coords: document.createElement("output")
+            }
+            let form = document.createElement("form");
+            Object.keys(html).forEach(k => {
+                html[k].className = k;
+                if (html[k + "_label"]) {
+                    html[k + "_label"].appendChild(html[k])
+                } else if (html[k.replace("_inner", "") + "_label"]) {
+                    html[k.replace("_inner", "") + "_label"].appendChild(html[k])
+                } else {
+                    form.appendChild(html[k]);
                 }
             })
-            let x = document.createElement("input");
-            x.type = "number";
-            x.required = "required";
-            let y = document.createElement("input");
-            y.type = "number";
-            y.required = "required";
-            let row = document.createElement("div");
-            row.style.display = "grid";
-            row.style.gridTemplateColumns = "minmax(0, 1fr) minmax(0, 3fr) minmax(0, 2fr) minmax(0, 2fr)";
-            row.appendChild(remove);
-            row.appendChild(sel);
-            row.appendChild(x);
-            row.appendChild(y);
-            // if details is filled in, populate, otherwise a blank row
-            if (details) {
-                x.value = details.x;
-                y.value = details.y;
+            html.colour.type = "color";
+            html.colour_label.appendChild(html.colour);
+            html.x.type = "number";
+            html.y.type = "number";
+
+            // contents
+            html.coords.textContent = "K7";
+            html.heading.textContent = "a battlefield effect";
+            html.heading.appendChild(html.coords);
+            html.left.textContent = "←";
+            html.right.textContent = "→";
+            html.up.textContent = "↑";
+            html.down.textContent = "↓";
+            "◯□".split("").forEach(o => {
+                let op = document.createElement("option"); op.text = o; html.shape.appendChild(op); });
+            "█▓▒░".split("").forEach(o => {
+                let op = document.createElement("option"); op.text = o; html.opacity.appendChild(op); });
+            "5ft,10ft,15ft,20ft,30ft".split(",").forEach(o => {
+                let op = document.createElement("option"); op.text = o; html.size.appendChild(op); });
+            html.remove.textContent = "×";
+
+            // handlers
+            form.onsubmit = () => { return false; }
+            bfe.container.appendChild(form);
+
+            function handleDropdown(e) {
+                let val = e.target.options[e.target.selectedIndex].value;
+                e.target.parentNode.dataset.innerValue = val;
+                serialise();
+            }
+            html.shape.addEventListener("change", handleDropdown, false);
+            html.opacity.addEventListener("change", handleDropdown, false);
+            html.size.addEventListener("change", handleDropdown, false);
+            html.colour.addEventListener("change", e => {
+                e.target.parentNode.querySelector("span").style.backgroundColor = e.target.value;
+                serialise();
+            }, false);
+
+            html.remove.addEventListener("click", () => {
+                form.remove();
+                serialise();
+            }, false);
+
+            let holdingIV;
+            html.up.addEventListener("click", () => { 
+                html.y.value = Math.max(html.y.valueAsNumber - 1, 1); serialise();
+                clearInterval(holdingIV);
+            }, false);
+            html.down.addEventListener("click", () => { 
+                html.y.value = html.y.valueAsNumber + 1; serialise();
+                clearInterval(holdingIV);
+            }, false);
+            html.left.addEventListener("click", () => { 
+                html.x.value = Math.max(html.x.valueAsNumber - 1, 1); serialise();
+                clearInterval(holdingIV);
+            }, false);
+            html.right.addEventListener("click", () => { 
+                html.x.value = html.x.valueAsNumber + 1; serialise();
+                clearInterval(holdingIV);
+            }, false);
+            // hold the mouse down to move fast
+            function hold(button, changeElement, amount) {
+                holdingIV = setInterval(() => {
+                    let nv = changeElement.valueAsNumber + amount;
+                    if (nv < 1) nv = 1;
+                    changeElement.value = nv;
+                    serialise();
+                }, 350);
+            }
+            html.up.addEventListener("mousedown", () => { hold(html.up, html.y, -1); }, false);
+            html.up.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+            html.down.addEventListener("mousedown", () => { hold(html.down, html.y, 1); }, false);
+            html.down.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+            html.left.addEventListener("mousedown", () => { hold(html.left, html.x, -1); }, false);
+            html.left.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+            html.right.addEventListener("mousedown", () => { hold(html.right, html.x, 1); }, false);
+            html.right.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+
+            // data
+            function setsel(sel, val) {
                 for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value == details.name) {
+                    if (sel.options[i].value == val) {
                         sel.selectedIndex = i;
                     }
                 }
-                effects.push(details);
             }
-            bfe.container.appendChild(row);
+            if (details) {
+                html.x.value = details.x;
+                html.y.value = details.y;
+                html.colour.value = details.colour;
+                html.colour_inner.style.backgroundColor = details.colour;
+                setsel(html.opacity, details.opacity);
+                setsel(html.shape, details.shape);
+                setsel(html.size, details.size);
+                effects.push(details);
+            } else {
+                html.x.value = 1;
+                html.y.value = 1;
+            }
 
-            sel.addEventListener("change", serialise, false);
-            x.addEventListener("input", serialise, false);
-            y.addEventListener("input", serialise, false);
-            remove.addEventListener("click", () => {
-                row.remove();
-                serialise();
-            }, false);
+            // initial values for dropdowns
+            handleDropdown({target: html.shape});
+            handleDropdown({target: html.opacity});
+            handleDropdown({target: html.size});
         }
 
         this.EFFECTS = {
-            "15ft darkness": (ctx, cxp, cyp, squareSize, done) => {
-                this.EFFECTS.CIRCLE("black", 3, ctx, cxp, cyp, squareSize, done)
-            },
-            "20ft red fog": (ctx, cxp, cyp, squareSize, done) => {
-                this.EFFECTS.CIRCLE("rgba(255, 0, 0, 0.5)", 4, ctx, cxp, cyp, squareSize, done)
-            },
-            CIRCLE: (mainColour, radiusSquares, ctx, cxp, cyp, squareSize, done) => {
+            CIRCLE: (ctx, mainColour, radiusSquares, opacity, cxp, cyp, squareSize, done) => {
                 let rg = ctx.createRadialGradient(cxp + squareSize / 2, cyp + squareSize / 2, 0,
                     cxp + squareSize / 2, cyp + squareSize / 2, squareSize * (radiusSquares + 0.5));
-                rg.addColorStop(0, mainColour);
-                rg.addColorStop(0.9, mainColour);
+                let opacityHex = ((opacity * 256) - 1).toString(16);
+                let colour8digits = mainColour + opacityHex;
+                rg.addColorStop(0, colour8digits);
+                rg.addColorStop(0.9, colour8digits);
                 rg.addColorStop(1.0, "rgba(0,0,0,0)");
                 ctx.fillStyle = rg;
+                ctx.fillRect(cxp - squareSize * radiusSquares, cyp - squareSize * radiusSquares,
+                    squareSize * (radiusSquares * 2 + 1), squareSize * (radiusSquares * 2 + 1));
+                done();
+            },
+            SQUARE: (ctx, mainColour, radiusSquares, opacity, cxp, cyp, squareSize, done) => {
+                let opacityHex = ((opacity * 256) - 1).toString(16);
+                let colour8digits = mainColour + opacityHex;
+                ctx.fillStyle = colour8digits;
                 ctx.fillRect(cxp - squareSize * radiusSquares, cyp - squareSize * radiusSquares,
                     squareSize * (radiusSquares * 2 + 1), squareSize * (radiusSquares * 2 + 1));
                 done();
@@ -140,7 +346,10 @@ class BattlefieldEffects extends HTMLElement {
             let cxp = gridSettings.xoffset + (ne.x * gridSettings.size);
             let cyp = gridSettings.yoffset + (ne.y * gridSettings.size);
             if (overallAlpha) { ctx.globalAlpha = overallAlpha; }
-            bfe.EFFECTS[ne.name](ctx, cxp, cyp, gridSettings.size, doNext);
+            let fn = {"◯": bfe.EFFECTS.CIRCLE , "□": bfe.EFFECTS.SQUARE}[ne.shape];
+            let opacity = {"░": 0.25, "▒": 0.5, "▓": 0.75, "█": 1.0}[ne.opacity];
+            let size = {"5ft": 1, "10ft": 2, "15ft": 3, "20ft": 4, "30ft": 6}[ne.size];
+            fn(ctx, ne.colour, size, opacity, cxp, cyp, gridSettings.size, doNext);
             ctx.globalAlpha = 1.0;
         }
         doNext();

@@ -115,11 +115,10 @@ class ExportImage extends HTMLElement {
                 // and fiddle their positions so they're counted from the top left of
                 // our export area, not from the top left of the whole map
                 let movedEffects = load_effects.map(function(t) {
-                    return {
-                        name: t.name,
+                    return Object.assign(t, {
                         x: t.x - exportSquaresLeft,
                         y: t.y - exportSquaresTop
-                    };
+                    });
                 })
 
                 // render the new tokens into our canvas
