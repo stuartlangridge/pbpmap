@@ -28,7 +28,7 @@ class MapCanvas extends HTMLElement {
                 position: absolute;
                 top: 0;
                 left: 0;
-                width: 100vw;
+                width: 75vw; /* excludes 25vw which is the width of the tool dialogue */
                 height: 100vh;
                 align-items: center;
             }
