@@ -239,7 +239,7 @@ class TokenManager extends HTMLElement {
         let iv = setInterval(async () => {
             if (window.addTools) {
                 clearInterval(iv);
-                [this.toolsElement, this.toolDialogSection] = window.addTools("Participants", [tools], true);
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Participants", [tools], {open:true});
                 let load_tokens = await this.toolsElement.load("tokens");
                 if (!Array.isArray(load_tokens)) load_tokens = [];
                 if (load_tokens.length == 0) {

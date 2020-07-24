@@ -110,26 +110,32 @@ class ToolDialogue extends HTMLElement {
         }
 
         this.mapId = "ONE";
-        this.remoteStorage = new RemoteStorage({logging: true});
+        this.remoteStorage = new RemoteStorage();
         this.remoteStorage.access.claim("pbpmap", "rw");
         this.remoteStorage.caching.enable('/pbpmap/');
         this.rsclient = this.remoteStorage.scope('/pbpmap/');
         this.rsclient.declareType("mapdata", {}); // no spec for maps
 
-        window.addTools = (ht, tools, openByDefault) => { return this.addTools(ht, tools, openByDefault); }
+        window.addTools = (ht, tools, options) => { return this.addTools(ht, tools, options); }
     }
 
-    addTools(headingText, tools, openByDefault) {
-        const accordion = document.createElement("details");
-        const summary = document.createElement("summary");
-        const heading = document.createElement("h2");
-        heading.textContent = headingText;
-        summary.appendChild(heading);
-        if (openByDefault) accordion.open = true;
-        accordion.appendChild(summary);
-        this.container.appendChild(accordion);
-        if (tools && Array.isArray(tools)) tools.forEach(t => accordion.appendChild(t));
-        return [this, accordion];
+    addTools(headingText, tools, options) {
+        let parent;
+        if (options && options.noHeading) {
+            parent = this.container;
+        } else {
+            const accordion = document.createElement("details");
+            const summary = document.createElement("summary");
+            const heading = document.createElement("h2");
+            heading.textContent = headingText;
+            summary.appendChild(heading);
+            if (options && options.openByDefault) accordion.open = true;
+            accordion.appendChild(summary);
+            this.container.appendChild(accordion);
+            parent = accordion;
+        }
+        if (tools && Array.isArray(tools)) tools.forEach(t => parent.appendChild(t));
+        return [this, parent];
     }
 
     getDataSync() {
@@ -148,9 +154,7 @@ class ToolDialogue extends HTMLElement {
         window.localStorage.setItem("pbp-map-data", JSON.stringify(jd));
     }
     async getMapDataById(mapid) {
-        console.log("asked to get map", mapid);
         let thismap = await this.rsclient.getObject("maps/" + mapid);
-        console.log("now I have", mapid);
         return thismap || {};
     }
     async getMapData() {
@@ -177,7 +181,6 @@ class ToolDialogue extends HTMLElement {
             console.log("no screen set, can't load");
             return;
         }
-        console.log("asked to load", key);
         let jd = await this.getMapData();
         return jd[key];
     }
