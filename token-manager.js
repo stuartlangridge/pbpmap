@@ -65,6 +65,17 @@ class TokenManager extends HTMLElement {
         #tm details > summary {
             list-style: none;
         }
+        #tm details > summary > .heading::after {
+            content: "»";
+            display: block;
+            float: right;
+            transition: transform 100ms ease-out;
+        }
+        #tm details[open] > summary > .heading::after {
+            transform: rotate(90deg);
+        }
+
+
         #tm details .coords { background: #333; color: white; padding: 0 4px; margin-left: 4px; }
 
         #tm details .container .x { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
@@ -488,10 +499,11 @@ class TokenManager extends HTMLElement {
                     load_tokens.forEach(addToken);
                 }
                 populateCopyButton(copy_button);
+                document.addEventListener("map-redraw", this.toolsElement.queueRedraw("token-manager", actuallyRedraw), false);
             }
         }, 50);
 
-        document.addEventListener("map-redraw", function(e) {
+        function actuallyRedraw(e) {
             let ctx = e.detail.ctx;
             if (tokens.length == 0) return;
             tm.renderTokens(ctx, tokens.map(t => {
@@ -500,14 +512,12 @@ class TokenManager extends HTMLElement {
                     name: t.name.value,
                     x: t.x.valueAsNumber,
                     y: t.y.valueAsNumber,
-                    /*
-                    conditions: Array.from(t.flags_list.querySelectorAll("input"))
-                    .filter(i => i.checked).map(i => i.parentNode.textContent)
-                    */
+                    //conditions: Array.from(t.flags_list.querySelectorAll("input"))
+                    //.filter(i => i.checked).map(i => i.parentNode.textContent)
                     conditions: []
                 }
             }));
-        });
+        };
         this.IMAGECACHE = {};
     }
 

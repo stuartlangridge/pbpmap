@@ -185,6 +185,8 @@ class ToolDialogue extends HTMLElement {
         this.rsclient = this.remoteStorage.scope('/pbpmap/');
         this.rsclient.declareType("mapdata", {}); // no spec for maps
 
+        this.redrawQueue = {};
+
         window.addTools = (ht, tools, options) => { return this.addTools(ht, tools, options); }
     }
 
@@ -282,6 +284,31 @@ class ToolDialogue extends HTMLElement {
     doRemoteStorageWidget() {
         const widget = new Widget(this.remoteStorage);
         widget.attach();
+    }
+
+    queueRedraw(owner, handler) {
+        this.redrawQueue[owner] = {
+            timeout: null,
+            eventObject: null
+        }
+        let that = this;
+        return function(e) {
+            if (that.redrawQueue[owner].timeout) {
+                console.log("event for", owner, "is queued, so storing");
+                // we're already queued, so just replace any previous e with this one
+                that.redrawQueue[owner].eventObject = e;
+                return;
+            }
+            // we're not queued, so store this e and start the clock
+            console.log("queueing event for", owner);
+            that.redrawQueue[owner].eventObject = e;
+            that.redrawQueue[owner].timeout = setTimeout(function() {
+                console.log("executing queued event for", owner);
+                handler({detail: Object.assign({}, that.redrawQueue[owner].eventObject.detail)});
+                that.redrawQueue[owner].timeout = null;
+                that.redrawQueue[owner].eventObject = null;
+            }, 200);
+        };
     }
 }
 window.customElements.define("tool-dialogue", ToolDialogue);
