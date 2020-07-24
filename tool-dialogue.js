@@ -294,16 +294,16 @@ class ToolDialogue extends HTMLElement {
         let that = this;
         return function(e) {
             if (that.redrawQueue[owner].timeout) {
-                console.log("event for", owner, "is queued, so storing");
+                //console.log("event for", owner, "is queued, so storing");
                 // we're already queued, so just replace any previous e with this one
                 that.redrawQueue[owner].eventObject = e;
                 return;
             }
             // we're not queued, so store this e and start the clock
-            console.log("queueing event for", owner);
+            //console.log("queueing event for", owner);
             that.redrawQueue[owner].eventObject = e;
             that.redrawQueue[owner].timeout = setTimeout(function() {
-                console.log("executing queued event for", owner);
+                //console.log("executing queued event for", owner);
                 handler({detail: Object.assign({}, that.redrawQueue[owner].eventObject.detail)});
                 that.redrawQueue[owner].timeout = null;
                 that.redrawQueue[owner].eventObject = null;
