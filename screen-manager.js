@@ -66,6 +66,7 @@ class ScreenManager extends HTMLElement {
         returnlink.textContent = "or return to list →";
         returnlink.style.display = "block";
         returnlink.style.textAlign = "right";
+        returnlink.style.color = "white";
         delreturn.appendChild(delbutton);
         delreturn.appendChild(document.createTextNode(" "));
         delreturn.appendChild(returnlink);

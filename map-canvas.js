@@ -78,11 +78,14 @@ class MapCanvas extends HTMLElement {
         addInput.required = true;
         addInput.placeholder = "map URL";
         addInput.addEventListener("input", setInput, false);
+        let addInputLabel = document.createElement("label");
+        addInputLabel.className = "input-label";
+        addInputLabel.appendChild(addInput);
 
         let iv = setInterval(async function() {
             if (window.addTools) {
                 clearInterval(iv);
-                [mc.toolsElement, mc.toolDialogSection] = window.addTools("Add a map", [addInput], false); 
+                [mc.toolsElement, mc.toolDialogSection] = window.addTools("Add a map", [addInputLabel]); 
                 let map = await mc.toolsElement.load("map");
                 if (map) {
                     addInput.value = map; setInput();
