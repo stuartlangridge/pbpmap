@@ -20,13 +20,14 @@ class TokenManager extends HTMLElement {
         super();
 
         let tools = document.createElement("div");
+        tools.id = "tm";
         let p = document.createElement("div");
-        //p.innerHTML = '<a href="https://imgur.com/a/0hFdv">(imgur list)</a>';
         tools.appendChild(p);
         let add_button = document.createElement("button");
         add_button.textContent = "+";
         add_button.style.float = "right";
         p.appendChild(add_button);
+        p.style.overflow = "auto";
         add_button.addEventListener("click", addToken, false);
         let copy_button = document.createElement("select");
         let copy_button_root = document.createElement("option");
@@ -40,7 +41,76 @@ class TokenManager extends HTMLElement {
         copy_button.style.textOverflow = "ellipsis";
         p.appendChild(copy_button);
         copy_button.addEventListener("change", copyParticipants, false);
-        
+
+        const styles = document.createElement("style");
+        const buttonColour = "#E4644B";
+        const buttonText = "white";
+        styles.textContent = `
+        #tm details .container { /* a single character */
+            display: grid;
+            grid-gap: 2px;
+            margin-top: 2px;
+            margin-bottom: 2px;
+            grid-template-columns: min-content min-content min-content 3fr min-content;
+            width: 100%;
+        }
+        #tm details .heading {
+            color: ${buttonText};
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 2px;
+        }
+        #tm details > summary {
+            list-style: none;
+        }
+        #tm details .coords { background: #333; color: white; padding: 0 4px; margin-left: 4px; }
+
+        #tm details .container .x { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #tm details .container .y { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #tm details .container .image { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #tm details .container .name { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #tm details .container .left { grid-column: 1; grid-row: 1 / span 2; }
+        #tm details .container .up { grid-column: 2; grid-row: 1; }
+        #tm details .container .down { grid-column: 2; grid-row: 2; }
+        #tm details .container .right { grid-column: 3; grid-row: 1 / span 2; }
+        #tm details .container .name_summon { grid-column: 4; grid-row: 1; }
+        #tm details .container .image_summon { grid-column: 4; grid-row: 2; }
+        #tm details .container .remove { grid-column: 5; grid-row: 1 / span 2; }
+        #tm details .container .image { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+        #tm details .container .name { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+
+        #tm details button {
+            padding: 0.2em 0.5em;
+            border-width: 0;
+            background: ${buttonColour};
+            color: ${buttonText};
+            min-width: 30px;
+            min-height: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: none;
+        }
+
+        #tm details .container .name_summon {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 10px;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            text-align: left;
+        }
+        #tm details .container .image_summon {
+            background-size: cover;
+            background-position: center center;
+            font-size: 10px;
+        }
+
+
+        `;
+        tools.appendChild(styles);
+
 
         let datalist = document.createElement("datalist");
         datalist.setAttribute("id", "imgur-tokens-datalist");
@@ -94,25 +164,195 @@ class TokenManager extends HTMLElement {
 
         function serialise() {
             let data = tokens.map(function(t) {
-                if (!t.url.validity.valid) return null;
+                if (!t.image.validity.valid) return null;
                 let ret = {
-                    url: t.url.value,
+                    url: t.image.value,
                     name: t.name.value,
                     x: t.x.valueAsNumber,
                     y: t.y.valueAsNumber
                 }
-                ret.conditions = Array.from(t.flags_list.querySelectorAll("input"))
-                    .filter(i => i.checked).map(i => i.parentNode.textContent);
+                ret.conditions = [];
+                //Array.from(t.flags_list.querySelectorAll("input"))
+                //    .filter(i => i.checked).map(i => i.parentNode.textContent);
+
                 return ret;
             }).filter(function(t) { return t; })
             if (data.length) {
                 tm.toolsElement.save("tokens", data);
             }
             document.dispatchEvent(new Event('request-map-redraw'));
+
+            tokens.forEach(async t => {
+                // update headings for this item
+                t.heading.firstChild.nodeValue = t.name.value != "" ? t.name.value : "New creature";
+                t.coords.textContent = await coordsToGridRef(t.x.valueAsNumber, t.y.valueAsNumber);
+            })
+
+
+        }
+
+        async function coordsToGridRef(x, y) {
+            let tlx = await tm.toolsElement.load("export-tlx"),
+                tly = await tm.toolsElement.load("export-tly"),
+                brx = await tm.toolsElement.load("export-brx"),
+                bry = await tm.toolsElement.load("export-bry"),
+                gx1 = await tm.toolsElement.load("grid-x1"),
+                gx2 = await tm.toolsElement.load("grid-x2"),
+                gy = await tm.toolsElement.load("grid-y");
+            let square = Math.abs(gx2 - gx1);
+            let gridSettingsXOffset = gx1 % square;
+            let gridSettingsYOffset = gy % square;
+            let widthOfReal = brx - tlx;
+            let heightOfReal = bry - tly;
+            let exportSquaresLeft = (tlx- gridSettingsXOffset) / square;
+            let exportSquaresTop = (tly - gridSettingsYOffset) / square;
+            let exportSquaresWidth = widthOfReal / square;
+            let exportSquaresHeight = heightOfReal / square;
+            let coordx = x - exportSquaresLeft + 1;
+            let coordy = y - exportSquaresTop + 1;
+            let coordtext = String.fromCharCode(64 + coordx) + coordy;
+            if (coordx < 1) {
+                coordtext = "←";
+            } else if (coordy < 1) {
+                coordtext = "↑"
+            } else if (coordx > exportSquaresWidth) {
+                coordtext = "→";
+            } else if (coordy > exportSquaresHeight) {
+                coordtext = "↓";
+            }
+            return coordtext;
+        }
+
+        function addToken(values) {
+            // create elements
+            let html = {
+                heading: document.createElement("h3"),
+                x: document.createElement("input"),
+                y: document.createElement("input"),
+                left: document.createElement("button"),
+                right: document.createElement("button"),
+                up: document.createElement("button"),
+                down: document.createElement("button"),
+                image: document.createElement("input"),
+                name: document.createElement("input"),
+                image_summon: document.createElement("button"),
+                name_summon: document.createElement("button"),
+                remove: document.createElement("button"),
+                coords: document.createElement("output"),
+            }
+            let details =  document.createElement("details");
+            let summary = document.createElement("summary");
+            let details_container =  document.createElement("div");
+            details_container.className = "container";
+            details.appendChild(summary);
+            details.appendChild(details_container);
+            Object.keys(html).forEach(k => {
+                html[k].className = k;
+                details_container.appendChild(html[k]);
+            })
+            summary.appendChild(html.heading)
+            html.x.type = "number";
+            html.y.type = "number";
+            html.image.type = "url";
+
+            // contents
+            html.coords.textContent = "K7";
+            html.heading.textContent = "New creature";
+            html.heading.appendChild(html.coords);
+            html.left.textContent = "←";
+            html.right.textContent = "→";
+            html.up.textContent = "↑";
+            html.down.textContent = "↓";
+            html.remove.textContent = "×";
+
+            // handlers
+            html.remove.addEventListener("click", () => {
+                details.remove();
+                serialise();
+            }, false);
+
+            let holdingIV, holdingCount;
+            html.up.addEventListener("click", () => { 
+                html.y.value = Math.max(html.y.valueAsNumber - 1, 1); serialise();
+                clearInterval(holdingIV);
+            }, false);
+            html.down.addEventListener("click", () => { 
+                html.y.value = html.y.valueAsNumber + 1; serialise();
+                clearInterval(holdingIV);
+            }, false);
+            html.left.addEventListener("click", () => { 
+                html.x.value = Math.max(html.x.valueAsNumber - 1, 1); serialise();
+                clearInterval(holdingIV);
+            }, false);
+            html.right.addEventListener("click", () => { 
+                html.x.value = html.x.valueAsNumber + 1; serialise();
+                clearInterval(holdingIV);
+            }, false);
+            // hold the mouse down to move fast
+            function hold(button, changeElement, amount) {
+                holdingCount = 0;
+                holdingIV = setInterval(() => {
+                    holdingCount += 1;
+                    if (holdingCount < 70 && holdingCount % 10 != 0) return;
+                    if (holdingCount < 140 && holdingCount % 5 != 0) return;
+                    let nv = changeElement.valueAsNumber + amount;
+                    if (nv < 1) nv = 1;
+                    changeElement.value = nv;
+                    serialise();
+                }, 20);
+            }
+            html.up.addEventListener("mousedown", () => { hold(html.up, html.y, -1); }, false);
+            html.up.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+            html.down.addEventListener("mousedown", () => { hold(html.down, html.y, 1); }, false);
+            html.down.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+            html.left.addEventListener("mousedown", () => { hold(html.left, html.x, -1); }, false);
+            html.left.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+            html.right.addEventListener("mousedown", () => { hold(html.right, html.x, 1); }, false);
+            html.right.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
+
+            html.image_summon.addEventListener("click", () => {
+                html.image.value = prompt("URL address of token image", html.image.value);
+                if (html.image.value == "") {
+                    html.image_summon.style.backgroundImage = "none";
+                    html.image_summon.textContent = "token image";
+                } else {
+                    html.image_summon.style.backgroundImage = "url(" + html.image.value + ")";
+                    html.image_summon.textContent = "";
+                }
+                serialise();
+            }, false);
+            html.name_summon.addEventListener("click", () => {
+                html.name.value = prompt("Participant name", html.name.value);
+                if (html.name.value == "") {
+                    html.name_summon.textContent = "New creature";
+                } else {
+                    html.name_summon.textContent = html.name.value;
+                }
+                serialise();
+            }, false);
+
+            if (values && values.url) {
+                html.image.value = values.url;
+                html.name.value = values.name;
+                html.heading.firstChild.nodeValue = values.name;
+                html.x.value = values.x;
+                html.y.value = values.y;
+                html.name_summon.textContent = values.name;
+                html.image_summon.style.backgroundImage = "url(" + values.url + ")";
+                html.image_summon.textContent = "";
+            } else {
+                html.x.value = 1;
+                html.y.value = 1;
+                html.name_summon.textContent = "New creature";
+                html.image_summon.style.backgroundImage = "none";
+                html.image_summon.textContent = "token image";
+            }
+            tokens.push(html);
+            tools.appendChild(details);
         }
 
         let masterRidx = 1;
-        function addToken(values) {
+        function addTokenOld(values) {
             let html = `
             <summary><span>Participant</span> <code>xx</code></summary>
             <div style="display: flex;">
@@ -256,12 +496,15 @@ class TokenManager extends HTMLElement {
             if (tokens.length == 0) return;
             tm.renderTokens(ctx, tokens.map(t => {
                 return {
-                    url: t.url.value,
+                    url: t.image.value,
                     name: t.name.value,
                     x: t.x.valueAsNumber,
                     y: t.y.valueAsNumber,
+                    /*
                     conditions: Array.from(t.flags_list.querySelectorAll("input"))
                     .filter(i => i.checked).map(i => i.parentNode.textContent)
+                    */
+                    conditions: []
                 }
             }));
         });
