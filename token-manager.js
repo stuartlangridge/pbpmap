@@ -331,9 +331,15 @@ class TokenManager extends HTMLElement {
                 ctx.fillStyle = "black";
                 let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
                 let textBoxY = ypos + containedSize - fontSize;
-                ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
-                    metrics.width + padding + padding, fontSize + padding + padding);
+                //ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
+                //    metrics.width + padding + padding, fontSize + padding + padding);
+                ctx.shadowColor = "white";
+                ctx.shadowOffsetX = 1;
+                ctx.shadowBlur = 1;
                 ctx.fillStyle = "white";
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+                ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
                 ctx.fillText(t.name, textBoxX, textBoxY + padding + padding);
 
                 if (t.conditions.length > 0) {
