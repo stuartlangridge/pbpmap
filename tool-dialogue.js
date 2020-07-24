@@ -37,7 +37,7 @@ class ToolDialogue extends HTMLElement {
             input[type="radio"] { float: right; }
             #container {
                 background: #493F40;
-                color: #FFCFD7;
+                color: rgba(255, 255, 255, 0.9);
                 box-shadow: -3px 0px 3px rgba(0,0,0,0.8);
                 box-sizing: border-box;
                 height: 100vh;
@@ -94,11 +94,26 @@ class ToolDialogue extends HTMLElement {
                 100% { opacity: 1; transform: translateX(0); }
             }
 
-            #container > details[open] > summary {
+            #container > details[open] + details, #container .noHeading {
+                margin-top: 0.5em;
+            }
+            #container > details[open] > summary, #container .noHeading {
                 margin-bottom: 0.5em;
             }
-            #container > details[open] > :last-child {
-                margin-bottom: 0.5em;
+
+            button {
+                border: 2px solid rgba(255, 255, 255, 0.8);
+                background: linear-gradient(to bottom right, transparent 25%, rgba(255, 255, 255, 0.8) 25%, rgba(255, 255, 255, 0.8) 28%, transparent 28%);
+                background-color: transparent;
+                background-size: 20px 20px;
+                background-repeat: no-repeat;
+                color: white;
+                text-transform: uppercase;
+                transition: background-color 150ms ease-in;
+                box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.7);
+            }
+            button:hover {
+                background-color: rgba(255, 255, 255, 0.2);
             }
 
         `;
@@ -122,7 +137,9 @@ class ToolDialogue extends HTMLElement {
     addTools(headingText, tools, options) {
         let parent;
         if (options && options.noHeading) {
-            parent = this.container;
+            parent = document.createElement("div");
+            parent.className = "noHeading";
+            this.container.appendChild(parent);
         } else {
             const accordion = document.createElement("details");
             const summary = document.createElement("summary");

@@ -184,7 +184,7 @@ class ExportImage extends HTMLElement {
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                [this.toolsElement, this.toolDialogSection] = window.addTools("Export to image", [btn], {open:true});
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Export to image", [btn], {noHeading:true});
             }
         }, 50);
 
