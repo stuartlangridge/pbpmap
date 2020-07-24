@@ -79,7 +79,7 @@ class ScreenManager extends HTMLElement {
         let iv = setInterval(() => {
             if (window.addTools) {
                 clearInterval(iv);
-                sm.toolsElement = window.addTools("Manage maps", [delreturn]);
+                [sm.toolsElement, sm.toolDialogueSection] = window.addTools("Manage maps", [delreturn]);
                 sm.loadList();
             }
         }, 50);
