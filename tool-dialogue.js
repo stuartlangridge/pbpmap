@@ -13,12 +13,19 @@ class ToolDialogue extends HTMLElement {
                 padding: 0;
                 font-size: 0.8em;
                 text-transform: uppercase;
-                background: #666;
+                background: #E4644B;
                 color: white;
                 padding: 0.4em;
                 margin: 3px 0;
             }
-            h1 { background: #333; margin-top: 0; }
+            h1 {
+                background: #493F40;
+                margin-top: 0;
+                margin-bottom: 0;
+                text-align: center;
+                margin-left: -0.6em;
+                margin-right: -0.5em;
+            }
             input[type="url"], input[type="text"], label {
                 width: 100%;
                 box-sizing: border-box;
@@ -29,15 +36,16 @@ class ToolDialogue extends HTMLElement {
             input:checked + label[data-for="checkbox"]::after { content: "✅"; }
             input[type="radio"] { float: right; }
             #container {
-                background: white;
-                box-shadow: 3px 3px 3px rgba(0,0,0,0.8);
-                border: 1px solid #ccc;
+                background: #493F40;
+                color: #FFCFD7;
+                box-shadow: -3px 0px 3px rgba(0,0,0,0.8);
                 box-sizing: border-box;
-                padding: 3px;
                 height: 100vh;
                 overflow-y: auto;
                 overflow-x: hidden;
                 user-select: none;
+                font-family: Roboto, sans-serif;
+                padding: 0 0.5em;
             }
             #container.ghostly {
                 opacity: 0.1;
@@ -48,7 +56,27 @@ class ToolDialogue extends HTMLElement {
             #container.ghostly h1 {
                 pointer-events: auto
             }
-            #container > details > summary { list-style: none; }
+            #container > details > summary {
+                list-style: none;
+                margin-left: -0.5em;
+                margin-right: -0.5em;
+            }
+            #container > details > summary > h2 {
+                margin: 0;
+                border-top: 1px solid #D5583E;
+                position: relative;
+            }
+            #container > details[open] > summary > h2::before {
+                content: "";
+                position: absolute;
+                bottom: -12px;
+                left: 12px;
+                width: 0;
+                height: 0;
+                border-style: solid;
+                border-width: 6px 10px;
+                border-color: #E4644B transparent transparent transparent;
+            }
             #container > details > summary > h2::after {
                 content: "»";
                 display: block;
@@ -66,6 +94,13 @@ class ToolDialogue extends HTMLElement {
                 100% { opacity: 1; transform: translateX(0); }
             }
 
+            #container > details[open] > summary {
+                margin-bottom: 0.5em;
+            }
+            #container > details[open] > :last-child {
+                margin-bottom: 0.5em;
+            }
+
         `;
         this.shadow.appendChild(this.container);
         this.shadow.appendChild(styles);
@@ -75,7 +110,7 @@ class ToolDialogue extends HTMLElement {
         }
 
         this.mapId = "ONE";
-        this.remoteStorage = new RemoteStorage();
+        this.remoteStorage = new RemoteStorage({logging: true});
         this.remoteStorage.access.claim("pbpmap", "rw");
         this.remoteStorage.caching.enable('/pbpmap/');
         this.rsclient = this.remoteStorage.scope('/pbpmap/');
@@ -113,7 +148,9 @@ class ToolDialogue extends HTMLElement {
         window.localStorage.setItem("pbp-map-data", JSON.stringify(jd));
     }
     async getMapDataById(mapid) {
+        console.log("asked to get map", mapid);
         let thismap = await this.rsclient.getObject("maps/" + mapid);
+        console.log("now I have", mapid);
         return thismap || {};
     }
     async getMapData() {
@@ -140,6 +177,7 @@ class ToolDialogue extends HTMLElement {
             console.log("no screen set, can't load");
             return;
         }
+        console.log("asked to load", key);
         let jd = await this.getMapData();
         return jd[key];
     }
