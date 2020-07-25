@@ -237,6 +237,7 @@ class TokenManager extends HTMLElement {
         function addToken(values) {
             // create elements
             let html = {
+                key: Math.random(),
                 heading: document.createElement("h3"),
                 x: document.createElement("input"),
                 y: document.createElement("input"),
@@ -258,6 +259,7 @@ class TokenManager extends HTMLElement {
             details.appendChild(summary);
             details.appendChild(details_container);
             Object.keys(html).forEach(k => {
+                if (k == "key") return;
                 html[k].className = k;
                 details_container.appendChild(html[k]);
             })
@@ -279,6 +281,7 @@ class TokenManager extends HTMLElement {
             // handlers
             html.remove.addEventListener("click", () => {
                 details.remove();
+                tokens = tokens.filter(s => { return s.key != html.key; })
                 serialise();
             }, false);
 
