@@ -86,11 +86,31 @@ class TokenManager extends HTMLElement {
         #tm details .container .up { grid-column: 2; grid-row: 1; }
         #tm details .container .down { grid-column: 2; grid-row: 2; }
         #tm details .container .right { grid-column: 3; grid-row: 1 / span 2; }
-        #tm details .container .name_summon { grid-column: 4; grid-row: 1; }
+        #tm details .container .name_summon_container { grid-column: 4; grid-row: 1; }
         #tm details .container .image_summon { grid-column: 4; grid-row: 2; }
         #tm details .container .remove { grid-column: 5; grid-row: 1 / span 2; }
         #tm details .container .image { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
         #tm details .container .name { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
+
+        #tm details .container .name_summon_container {
+            display: flex;
+        }
+        #tm details .container .name_summon_container .name_summon { flex: 1 0; }
+        #tm details .container .name_summon_container .visible_label {
+            flex: 0 1;
+            padding: 0 3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            opacity: 0.6;
+            margin-left: 2px;
+        }
+        #tm details .container .name_summon_container .visible:checked + .visible_label {
+            background: #E4644B;
+            opacity: 1;
+        }
+        #tm details .container .name_summon_container .visible { display: none }
 
         #tm details button {
             padding: 0.2em 0.5em;
@@ -180,7 +200,8 @@ class TokenManager extends HTMLElement {
                     url: t.image.value,
                     name: t.name.value,
                     x: t.x.valueAsNumber,
-                    y: t.y.valueAsNumber
+                    y: t.y.valueAsNumber,
+                    visible: t.visible.checked
                 }
                 ret.conditions = [];
                 //Array.from(t.flags_list.querySelectorAll("input"))
@@ -249,8 +270,11 @@ class TokenManager extends HTMLElement {
                 name: document.createElement("input"),
                 image_summon: document.createElement("button"),
                 name_summon: document.createElement("button"),
+                name_summon_container: document.createElement("div"),
                 remove: document.createElement("button"),
                 coords: document.createElement("output"),
+                visible: document.createElement("input"),
+                visible_label: document.createElement("label"),
             }
             let details =  document.createElement("details");
             let summary = document.createElement("summary");
@@ -263,7 +287,13 @@ class TokenManager extends HTMLElement {
                 html[k].className = k;
                 details_container.appendChild(html[k]);
             })
-            summary.appendChild(html.heading)
+            html.name_summon_container.appendChild(html.name_summon);
+            html.name_summon_container.appendChild(html.visible);
+            html.name_summon_container.appendChild(html.visible_label);
+            summary.appendChild(html.heading);
+            html.visible.type = "checkbox";
+            html.visible.id = "v" + (Math.floor(Math.random() * 10000));
+            html.visible_label.htmlFor = html.visible.id;
             html.x.type = "number";
             html.y.type = "number";
             html.image.type = "url";
@@ -277,6 +307,7 @@ class TokenManager extends HTMLElement {
             html.up.textContent = "↑";
             html.down.textContent = "↓";
             html.remove.textContent = "×";
+            html.visible_label.textContent = "👻";
 
             // handlers
             html.remove.addEventListener("click", () => {
@@ -324,6 +355,8 @@ class TokenManager extends HTMLElement {
             html.right.addEventListener("mousedown", () => { hold(html.right, html.x, 1); }, false);
             html.right.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
 
+            html.visible.addEventListener("change", () => { serialise(); }, false);
+
             html.image_summon.addEventListener("click", () => {
                 html.image.value = prompt("URL address of token image", html.image.value);
                 if (html.image.value == "") {
@@ -354,12 +387,14 @@ class TokenManager extends HTMLElement {
                 html.name_summon.textContent = values.name;
                 html.image_summon.style.backgroundImage = "url(" + values.url + ")";
                 html.image_summon.textContent = "";
+                html.visible.checked = values.visible === undefined ? true : values.visible;
             } else {
                 html.x.value = 1;
                 html.y.value = 1;
                 html.name_summon.textContent = "New creature";
                 html.image_summon.style.backgroundImage = "none";
                 html.image_summon.textContent = "token image";
+                html.visible.checked = true;
             }
             tokens.push(html);
             tools.appendChild(details);
@@ -509,12 +544,14 @@ class TokenManager extends HTMLElement {
         function actuallyRedraw(e) {
             let ctx = e.detail.ctx;
             if (tokens.length == 0) return;
+            console.log(tokens);
             tm.renderTokens(ctx, tokens.map(t => {
                 return {
                     url: t.image.value,
                     name: t.name.value,
                     x: t.x.valueAsNumber,
                     y: t.y.valueAsNumber,
+                    visible: t.visible.checked,
                     //conditions: Array.from(t.flags_list.querySelectorAll("input"))
                     //.filter(i => i.checked).map(i => i.parentNode.textContent)
                     conditions: []
@@ -537,7 +574,13 @@ class TokenManager extends HTMLElement {
         };
         if (overrideGridSettings) gridSettings = overrideGridSettings;
         function nextImage(t, done) {
+            if (gridSettings.exportingImage && !t.visible) {
+                if (done) done();
+                return;
+            }
             function loadit(img) {
+                console.log(t);
+                if (!t.visible) ctx.globalAlpha = 0.5;
                 let margin = 2;
                 let xpos = gridSettings.xoffset + (t.x * gridSettings.size) + margin;
                 let ypos = gridSettings.yoffset + (t.y * gridSettings.size) + margin;
@@ -582,7 +625,7 @@ class TokenManager extends HTMLElement {
                 let fontSize = Math.floor(containedSize / 5);
                 let padding = 3;
                 fontSize = Math.max(fontSize, 8);
-                ctx.font = fontSize + "px sans-serif";
+                ctx.font = "bold " + fontSize + "px sans-serif";
                 let metrics = ctx.measureText(t.name);
                 ctx.fillStyle = "black";
                 let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
@@ -590,12 +633,13 @@ class TokenManager extends HTMLElement {
                 //ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
                 //    metrics.width + padding + padding, fontSize + padding + padding);
                 ctx.shadowColor = "white";
-                ctx.shadowOffsetX = 1;
-                ctx.shadowBlur = 1;
-                ctx.fillStyle = "white";
-                ctx.strokeStyle = "black";
-                ctx.lineWidth = 2;
-                ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.shadowBlur = 3;
+                ctx.fillStyle = "black";
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 1;
+                //ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
                 ctx.fillText(t.name, textBoxX, textBoxY + padding + padding);
 
                 if (t.conditions.length > 0) {
@@ -612,6 +656,7 @@ class TokenManager extends HTMLElement {
                     ctx.fillStyle = "black";
                     ctx.fillText(condstr, textBoxX, textBoxY + padding);
                 }
+                if (!t.visible) ctx.globalAlpha = 1.0;
 
                 if (done) done();
             }

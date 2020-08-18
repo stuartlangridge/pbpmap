@@ -91,7 +91,7 @@ class ExportImage extends HTMLElement {
                 // now get the tokens
                 let load_tokens = await that.toolsElement.load("tokens");
                 if (!Array.isArray(load_tokens)) load_tokens = [];
-                let overrideGridSettings = {xoffset: 0, yoffset: 0, size: square};
+                let overrideGridSettings = {xoffset: 0, yoffset: 0, size: square, exportingImage: true};
 
                 // and fiddle their positions so they're counted from the top left of
                 // our export area, not from the top left of the whole map
@@ -103,6 +103,7 @@ class ExportImage extends HTMLElement {
                         name: t.name,
                         x: t.x - exportSquaresLeft,
                         y: t.y - exportSquaresTop,
+                        visible: t.visible === undefined ? true : !!t.visible,
                         conditions: t.conditions || []
                     };
                 })
