@@ -581,7 +581,7 @@ class TokenManager extends HTMLElement {
             function loadit(img) {
                 console.log(t);
                 if (!t.visible) ctx.globalAlpha = 0.5;
-                let margin = 2;
+                let margin = 0;
                 let xpos = gridSettings.xoffset + (t.x * gridSettings.size) + margin;
                 let ypos = gridSettings.yoffset + (t.y * gridSettings.size) + margin;
                 let grab = {size: Math.min(img.naturalWidth, img.naturalHeight)};
@@ -632,14 +632,16 @@ class TokenManager extends HTMLElement {
                 let textBoxY = ypos + containedSize - fontSize;
                 //ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
                 //    metrics.width + padding + padding, fontSize + padding + padding);
+                /*
                 ctx.shadowColor = "white";
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
-                ctx.shadowBlur = 3;
+                ctx.shadowOffsetX = 10;
+                ctx.shadowOffsetY = 10;
+                ctx.shadowBlur = 0;
+                */
                 ctx.fillStyle = "black";
                 ctx.strokeStyle = "white";
-                ctx.lineWidth = 1;
-                //ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
+                ctx.lineWidth = 4;
+                ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
                 ctx.fillText(t.name, textBoxX, textBoxY + padding + padding);
 
                 if (t.conditions.length > 0) {
