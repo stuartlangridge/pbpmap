@@ -71,7 +71,8 @@ class ExportImage extends HTMLElement {
                     bry = await that.toolsElement.load("export-bry"),
                     gx1 = await that.toolsElement.load("grid-x1"),
                     gx2 = await that.toolsElement.load("grid-x2"),
-                    gy = await that.toolsElement.load("grid-y");
+                    gy = await that.toolsElement.load("grid-y"),
+                    grid_show_on_export = await that.toolsElement.load("grid-show-on-export");
                 let square = Math.abs(gx2 - gx1);
                 let gridSettingsXOffset = gx1 % square;
                 let gridSettingsYOffset = gy % square;
@@ -107,6 +108,18 @@ class ExportImage extends HTMLElement {
                         conditions: t.conditions || []
                     };
                 })
+
+                if (grid_show_on_export) {
+                    // draw grid on the export map
+                    mapSectionCtx.fillStyle = "rgba(0, 0, 0, 0.3)"
+                    let lwidth = Math.ceil(square / 40);
+                    for (let liney=0; liney<=heightOfReal; liney+=square) {
+                        mapSectionCtx.fillRect(0, liney, widthOfReal, lwidth)
+                    }
+                    for (let linex=0; linex<=widthOfReal; linex+=square) {
+                        mapSectionCtx.fillRect(linex, 0, lwidth, heightOfReal)
+                    }
+                }
 
                 // render the new tokens into our canvas
                 await that.callTokenManagerToRenderTokens(mapSectionCtx, movedTokens, overrideGridSettings);

@@ -13,10 +13,21 @@ class PageGrid extends HTMLElement {
         lbl.htmlFor = "cb";
         lbl.dataset.for = "checkbox";
         lbl.textContent = "Edit grid";
+
+        let cb_show = document.createElement("input");
+        cb_show.type = "checkbox";
+        cb_show.id = "cb_show";
+        let lbl_show = document.createElement("label");
+        lbl_show.htmlFor = "cb_show";
+        lbl_show.dataset.for = "checkbox";
+        lbl_show.textContent = "Show grid in export";
+
         let pair = document.createElement("div");
         shadow.appendChild(pair);
         pair.appendChild(cb);
         pair.appendChild(lbl);
+        pair.appendChild(cb_show);
+        pair.appendChild(lbl_show);
 
         async function kp(e) {
             if ([37,38,39,40].indexOf(e.which) == -1) return;
@@ -57,6 +68,10 @@ class PageGrid extends HTMLElement {
             document.dispatchEvent(new Event('request-map-redraw'));
         }, false);
 
+        cb_show.addEventListener("change", async (e) => {
+            await pg.toolsElement.save("grid-show-on-export", cb_show.checked);
+        }, false);
+
         let gridStartLabel = document.createElement("label");
         gridStartLabel.textContent = "Set grid start";
         let gridStartRadio = document.createElement("input");
@@ -87,10 +102,12 @@ class PageGrid extends HTMLElement {
         gridWidth.style.display = "none";
         gridWidthRadio.onfocus = function() { gridWidthRadio.blur(); }
 
-        let iv = setInterval(() => {
+        let iv = setInterval(async () => {
             if (window.addTools) {
                 clearInterval(iv);
                 [this.toolsElement, this.toolDialogSection] = window.addTools("Map grid", [pair, gridStart, gridWidth]); 
+                let showgrid = await this.toolsElement.load("grid-show-on-export")
+                cb_show.checked = !!showgrid;
             } else {
                 console.log("waiting in page grid");
             }
