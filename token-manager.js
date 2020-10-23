@@ -146,7 +146,7 @@ class TokenManager extends HTMLElement {
         let datalist = document.createElement("datalist");
         datalist.setAttribute("id", "imgur-tokens-datalist");
         function populateTokenDatalist() {
-            console.log("tokens list is", window.loadedImgurTokenList);
+            //console.log("tokens list is", window.loadedImgurTokenList);
             window.loadedImgurTokenList.data.forEach(function(img) {
                 let opt = document.createElement("option");
                 opt.text = img.title;
@@ -544,7 +544,7 @@ class TokenManager extends HTMLElement {
         function actuallyRedraw(e) {
             let ctx = e.detail.ctx;
             if (tokens.length == 0) return;
-            console.log(tokens);
+            //console.log(tokens);
             tm.renderTokens(ctx, tokens.map(t => {
                 return {
                     url: t.image.value,
@@ -579,7 +579,7 @@ class TokenManager extends HTMLElement {
                 return;
             }
             function loadit(img) {
-                console.log(t);
+                //console.log(t);
                 if (!t.visible) ctx.globalAlpha = 0.5;
                 let margin = 0;
                 let xpos = gridSettings.xoffset + (t.x * gridSettings.size) + margin;
