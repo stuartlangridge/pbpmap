@@ -143,7 +143,8 @@ class BattlefieldEffects extends HTMLElement {
             if (window.addTools) {
                 clearInterval(iv);
                 [this.toolsElement, this.toolDialogSection] = window.addTools("Battlefield effects", [pbtn, bfe.container], {openByDefault: true});
-                document.addEventListener("map-redraw", this.toolsElement.queueRedraw("battlefield-effects", actuallyRedraw), false);                let load_effects = await this.toolsElement.load("effects");
+                document.addEventListener("map-redraw", this.toolsElement.queueRedraw("battlefield-effects", actuallyRedraw), false);
+                let load_effects = await this.toolsElement.load("effects");
                 if (!Array.isArray(load_effects)) load_effects = [];
                 if (load_effects.length > 0) {
                     load_effects.forEach(addEffect);
