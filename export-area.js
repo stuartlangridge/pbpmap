@@ -39,28 +39,28 @@ class ExportArea extends HTMLElement {
             }
         }, 50);
 
-        let tlbr = [null, null];
+        ea.tlbr = [null, null];
         document.addEventListener("map-redraw", async function(e) {
             let ctx = e.detail.ctx;
             ea.canvas = ctx.canvas;
             ea.ctx = ctx;
             if (ea.editing) {
                 // draw the box while editing it
-                if (tlbr[0]) {
+                if (ea.tlbr[0]) {
                     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-                    ctx.fillRect(tlbr[0].x + gridSettings.xoffset, tlbr[0].y + gridSettings.yoffset, tlbr[1].x - tlbr[0].x, tlbr[1].y - tlbr[0].y);
+                    ctx.fillRect(ea.tlbr[0].x + gridSettings.xoffset, ea.tlbr[0].y + gridSettings.yoffset, ea.tlbr[1].x - ea.tlbr[0].x, ea.tlbr[1].y - ea.tlbr[0].y);
                 }
             } else {
                 // drop the box corners to show where the export area is
-                if (!tlbr[0]) {
+                if (!ea.tlbr[0]) {
                     await calculateTlbr();
                 }
                 ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
                 ctx.lineWidth = 2;
-                ctx.strokeRect(tlbr[0].x + gridSettings.xoffset, tlbr[0].y + gridSettings.yoffset, tlbr[1].x - tlbr[0].x, tlbr[1].y - tlbr[0].y);
+                ctx.strokeRect(ea.tlbr[0].x + gridSettings.xoffset, ea.tlbr[0].y + gridSettings.yoffset, ea.tlbr[1].x - ea.tlbr[0].x, ea.tlbr[1].y - ea.tlbr[0].y);
                 ctx.strokeStyle = "rgba(0, 255, 0, 0.7)";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(tlbr[0].x + gridSettings.xoffset, tlbr[0].y + gridSettings.yoffset, tlbr[1].x - tlbr[0].x, tlbr[1].y - tlbr[0].y);
+                ctx.strokeRect(ea.tlbr[0].x + gridSettings.xoffset, ea.tlbr[0].y + gridSettings.yoffset, ea.tlbr[1].x - ea.tlbr[0].x, ea.tlbr[1].y - ea.tlbr[0].y);
             }
         });
 
@@ -82,7 +82,7 @@ class ExportArea extends HTMLElement {
             let x = e.offsetX || (e.pageX - ea.canvas.offsetLeft);
             let y = e.offsetY || (e.pageY - ea.canvas.offsetTop);
             let pt = ea.ctx.transformedPoint(x, y);
-            tlbr = squaresFromPoints(startDrag, pt);
+            ea.tlbr = squaresFromPoints(startDrag, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
         }
         async function mu(e) {
@@ -91,12 +91,12 @@ class ExportArea extends HTMLElement {
             let x = e.offsetX || (e.pageX - ea.canvas.offsetLeft);
             let y = e.offsetY || (e.pageY - ea.canvas.offsetTop);
             let pt = ea.ctx.transformedPoint(x, y);
-            tlbr = squaresFromPoints(startDrag, pt);
+            ea.tlbr = squaresFromPoints(startDrag, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
-            await ea.toolsElement.save("export-tlx", tlbr[0].x + gridSettings.xoffset);
-            await ea.toolsElement.save("export-tly", tlbr[0].y + gridSettings.yoffset);
-            await ea.toolsElement.save("export-brx", tlbr[1].x + gridSettings.xoffset);
-            await ea.toolsElement.save("export-bry", tlbr[1].y + gridSettings.yoffset);
+            await ea.toolsElement.save("export-tlx", ea.tlbr[0].x + gridSettings.xoffset);
+            await ea.toolsElement.save("export-tly", ea.tlbr[0].y + gridSettings.yoffset);
+            await ea.toolsElement.save("export-brx", ea.tlbr[1].x + gridSettings.xoffset);
+            await ea.toolsElement.save("export-bry", ea.tlbr[1].y + gridSettings.yoffset);
         }
         async function md(e) {
             ea.canvas.addEventListener('mousemove', mm, false);
@@ -113,7 +113,7 @@ class ExportArea extends HTMLElement {
             };
             gridSettings.xoffset = gx1 % gridSettings.size;
             gridSettings.yoffset = gy % gridSettings.size;
-            tlbr = squaresFromPoints(pt, pt);
+            ea.tlbr = squaresFromPoints(pt, pt);
             document.dispatchEvent(new Event('request-map-redraw'));
         }
         async function calculateTlbr() {
@@ -121,9 +121,9 @@ class ExportArea extends HTMLElement {
             let tly = await ea.toolsElement.load("export-tly");
             let brx = await ea.toolsElement.load("export-brx");
             let bry = await ea.toolsElement.load("export-bry");
-            tlbr = [null, null];
+            ea.tlbr = [null, null];
             if (tlx !== undefined) {
-                tlbr = [{x:tlx, y:tly}, {x:brx, y:bry}];
+                ea.tlbr = [{x:tlx, y:tly}, {x:brx, y:bry}];
             }
         }
     }

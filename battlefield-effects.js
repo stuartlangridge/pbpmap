@@ -362,6 +362,26 @@ class BattlefieldEffects extends HTMLElement {
             } else {
                 html.x.value = 1;
                 html.y.value = 1;
+                setTimeout(async () => {
+                    let tlx = await bfe.toolsElement.load("export-tlx"),
+                        tly = await bfe.toolsElement.load("export-tly"),
+                        gx1 = await bfe.toolsElement.load("grid-x1"),
+                        gx2 = await bfe.toolsElement.load("grid-x2"),
+                        gy = await bfe.toolsElement.load("grid-y");
+                    if (tlx && gx2) {
+                        let square = Math.abs(gx2 - gx1);
+                        let gridSettingsXOffset = gx1 % square;
+                        let gridSettingsYOffset = gy % square;
+                        let exportSquaresLeft = (tlx - gridSettingsXOffset) / square;
+                        let exportSquaresTop = (tly - gridSettingsYOffset) / square;
+                        console.log("setting to", exportSquaresLeft, exportSquaresTop)
+                        html.x.value = exportSquaresLeft;
+                        html.y.value = exportSquaresTop;
+                        serialise();
+                    } else {
+                        // didn't get values for some reason, so do nothing
+                    }
+                }, 20);
             }
 
             // initial values for dropdowns
