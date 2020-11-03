@@ -92,19 +92,26 @@ class TokenManager extends HTMLElement {
         #tm details .container .image { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
         #tm details .container .name { grid-column: 1; grid-row: 5; display: none; } /* hide inputs */
 
-        #tm details .container .name_summon_container {
+        #tm details .container .name_summon_container, #tm details .container .image_summon_container {
             display: flex;
         }
-        #tm details .container .name_summon_container .name_summon { flex: 1 0; }
-        #tm details .container .name_summon_container .visible_label {
+        #tm details .container .name_summon_container .name_summon,
+        #tm details .container .image_summon_container .image_summon {
+            flex: 1 0;
+        }
+        #tm details .container .name_summon_container .visible_label,
+        #tm details .container .image_summon_container .clone {
             flex: 0 1;
             padding: 0 3px;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-left: 2px;
+            min-width: 22px;
+        }
+        #tm details .container .name_summon_container .visible_label {
             background: transparent;
             opacity: 0.6;
-            margin-left: 2px;
         }
         #tm details .container .name_summon_container .visible:checked + .visible_label {
             background: #E4644B;
@@ -193,34 +200,37 @@ class TokenManager extends HTMLElement {
             selmap[0].tokens.forEach(t => { addToken(t); });
         }
 
-        function serialise() {
-            let data = tokens.map(function(t) {
-                if (!t.image.validity.valid) return null;
-                let ret = {
-                    url: t.image.value,
-                    name: t.name.value,
-                    x: t.x.valueAsNumber,
-                    y: t.y.valueAsNumber,
-                    visible: t.visible.checked
-                }
-                ret.conditions = [];
-                //Array.from(t.flags_list.querySelectorAll("input"))
-                //    .filter(i => i.checked).map(i => i.parentNode.textContent);
-
-                return ret;
-            }).filter(function(t) { return t; })
-            if (data.length) {
-                tm.toolsElement.save("tokens", data);
+        function serialiseSingleToken(t) {
+            if (!t.image.validity.valid) return null;
+            let ret = {
+                url: t.image.value,
+                name: t.name.value,
+                x: t.x.valueAsNumber,
+                y: t.y.valueAsNumber,
+                visible: t.visible.checked
             }
-            document.dispatchEvent(new Event('request-map-redraw'));
+            ret.conditions = [];
+            //Array.from(t.flags_list.querySelectorAll("input"))
+            //    .filter(i => i.checked).map(i => i.parentNode.textContent);
 
+            return ret;
+        }
+
+        function updateHeadings() {
             tokens.forEach(async t => {
                 // update headings for this item
                 t.heading.firstChild.nodeValue = t.name.value != "" ? t.name.value : "New creature";
                 t.coords.textContent = await coordsToGridRef(t.x.valueAsNumber, t.y.valueAsNumber);
             })
+        }
 
-
+        function serialise() {
+            let data = tokens.map(serialiseSingleToken).filter(function(t) { return t; })
+            if (data.length) {
+                tm.toolsElement.save("tokens", data);
+            }
+            document.dispatchEvent(new Event('request-map-redraw'));
+            updateHeadings();
         }
 
         async function coordsToGridRef(x, y) {
@@ -269,12 +279,14 @@ class TokenManager extends HTMLElement {
                 image: document.createElement("input"),
                 name: document.createElement("input"),
                 image_summon: document.createElement("button"),
+                image_summon_container: document.createElement("div"),
                 name_summon: document.createElement("button"),
                 name_summon_container: document.createElement("div"),
                 remove: document.createElement("button"),
                 coords: document.createElement("output"),
                 visible: document.createElement("input"),
                 visible_label: document.createElement("label"),
+                clone: document.createElement("button"),
             }
             let details =  document.createElement("details");
             let summary = document.createElement("summary");
@@ -290,6 +302,8 @@ class TokenManager extends HTMLElement {
             html.name_summon_container.appendChild(html.name_summon);
             html.name_summon_container.appendChild(html.visible);
             html.name_summon_container.appendChild(html.visible_label);
+            html.image_summon_container.appendChild(html.image_summon);
+            html.image_summon_container.appendChild(html.clone);
             summary.appendChild(html.heading);
             html.visible.type = "checkbox";
             html.visible.id = "v" + (Math.floor(Math.random() * 10000));
@@ -308,6 +322,7 @@ class TokenManager extends HTMLElement {
             html.down.textContent = "↓";
             html.remove.textContent = "×";
             html.visible_label.textContent = "👻";
+            html.clone.textContent = "⧉";
 
             // handlers
             html.remove.addEventListener("click", () => {
@@ -356,6 +371,12 @@ class TokenManager extends HTMLElement {
             html.right.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
 
             html.visible.addEventListener("change", () => { serialise(); }, false);
+            html.clone.addEventListener("click", () => {
+                let mydetails = serialiseSingleToken(html);
+                mydetails.x += 1;
+                addToken(mydetails);
+                serialise();
+            }, false);
 
             html.image_summon.addEventListener("click", () => {
                 html.image.value = prompt("URL address of token image", html.image.value);
@@ -538,6 +559,7 @@ class TokenManager extends HTMLElement {
                 }
                 populateCopyButton(copy_button);
                 document.addEventListener("map-redraw", this.toolsElement.queueRedraw("token-manager", actuallyRedraw), false);
+                updateHeadings();
             }
         }, 50);
 
