@@ -322,7 +322,9 @@ class TokenManager extends HTMLElement {
             html.down.textContent = "↓";
             html.remove.textContent = "×";
             html.visible_label.textContent = "👻";
+            html.visible_label.title = "Hide from exported image";
             html.clone.textContent = "⧉";
+            html.clone.title = "Duplicate";
 
             // handlers
             html.remove.addEventListener("click", () => {
@@ -373,7 +375,29 @@ class TokenManager extends HTMLElement {
             html.visible.addEventListener("change", () => { serialise(); }, false);
             html.clone.addEventListener("click", () => {
                 let mydetails = serialiseSingleToken(html);
+                let allNames = tokens.map(serialiseSingleToken).map(t => t.name);
                 mydetails.x += 1;
+                let numend = mydetails.name.match(/ ([0-9]+)$/);
+                let loops = 1;
+                let inc = 1;
+                let chosenName;
+                while (true) {
+                    loops += 1;
+                    if (loops > 30) { console.log("too many loops"); break; }
+                    let num;
+                    if (numend) {
+                        num = parseInt(numend[1], 10) + inc;
+                        chosenName = mydetails.name.replace(/ ([0-9]+)$/, " " + num);
+                    } else {
+                        chosenName = mydetails.name + " " + (inc + 1);
+                    }
+                    if (allNames.includes(chosenName)) {
+                        inc += 1
+                    } else {
+                        mydetails.name = chosenName;
+                        break
+                    }
+                }
                 addToken(mydetails);
                 serialise();
             }, false);
