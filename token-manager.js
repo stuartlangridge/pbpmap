@@ -141,7 +141,7 @@ class TokenManager extends HTMLElement {
         }
         #tm details .container .image_summon {
             background-size: cover;
-            background-position: center center;
+            background-position: center 30%;
             font-size: 10px;
         }
 
