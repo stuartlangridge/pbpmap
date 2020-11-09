@@ -100,7 +100,8 @@ class TokenManager extends HTMLElement {
             flex: 1 0;
         }
         #tm details .container .name_summon_container .visible_label,
-        #tm details .container .image_summon_container .clone {
+        #tm details .container .image_summon_container .clone,
+        #tm details .container .image_summon_container .conds_summon {
             flex: 0 1;
             padding: 0 3px;
             display: flex;
@@ -109,6 +110,7 @@ class TokenManager extends HTMLElement {
             margin-left: 2px;
             min-width: 22px;
         }
+        #tm details .container .image_summon_container .conds { display: none; } /* hide input */
         #tm details .container .name_summon_container .visible_label {
             background: transparent;
             opacity: 0.6;
@@ -207,12 +209,9 @@ class TokenManager extends HTMLElement {
                 name: t.name.value,
                 x: t.x.valueAsNumber,
                 y: t.y.valueAsNumber,
-                visible: t.visible.checked
+                visible: t.visible.checked,
+                conditions: t.conds.value.split(",").filter(s => s.length > 0)
             }
-            ret.conditions = [];
-            //Array.from(t.flags_list.querySelectorAll("input"))
-            //    .filter(i => i.checked).map(i => i.parentNode.textContent);
-
             return ret;
         }
 
@@ -287,6 +286,8 @@ class TokenManager extends HTMLElement {
                 visible: document.createElement("input"),
                 visible_label: document.createElement("label"),
                 clone: document.createElement("button"),
+                conds_summon: document.createElement("button"),
+                conds: document.createElement("input"),
             }
             let details =  document.createElement("details");
             let summary = document.createElement("summary");
@@ -304,6 +305,8 @@ class TokenManager extends HTMLElement {
             html.name_summon_container.appendChild(html.visible_label);
             html.image_summon_container.appendChild(html.image_summon);
             html.image_summon_container.appendChild(html.clone);
+            html.image_summon_container.appendChild(html.conds);
+            html.image_summon_container.appendChild(html.conds_summon);
             summary.appendChild(html.heading);
             html.visible.type = "checkbox";
             html.visible.id = "v" + (Math.floor(Math.random() * 10000));
@@ -325,6 +328,8 @@ class TokenManager extends HTMLElement {
             html.visible_label.title = "Hide from exported image";
             html.clone.textContent = "⧉";
             html.clone.title = "Duplicate";
+            html.conds_summon.textContent = "🤢";
+            html.conds_summon.title = "Conditions";
 
             // handlers
             html.remove.addEventListener("click", () => {
@@ -401,6 +406,19 @@ class TokenManager extends HTMLElement {
                 addToken(mydetails);
                 serialise();
             }, false);
+            html.conds_summon.addEventListener("click", () => {
+                let ncond = prompt("Add or remove a condition by name");
+                if (ncond != "") {
+                    let curconds = html.conds.value.split(",");
+                    if (curconds.includes(ncond)) {
+                        curconds = curconds.filter(s => s != ncond)
+                    } else {
+                        curconds.push(ncond)
+                    }
+                    html.conds.value = curconds.join(",");
+                    serialise();
+                }
+            }, false);
 
             html.image_summon.addEventListener("click", () => {
                 html.image.value = prompt("URL address of token image", html.image.value);
@@ -424,6 +442,7 @@ class TokenManager extends HTMLElement {
             }, false);
 
             if (values && values.url) {
+                console.log("restoring", values)
                 html.image.value = values.url;
                 html.name.value = values.name;
                 html.heading.firstChild.nodeValue = values.name;
@@ -433,6 +452,7 @@ class TokenManager extends HTMLElement {
                 html.image_summon.style.backgroundImage = "url(" + values.url + ")";
                 html.image_summon.textContent = "";
                 html.visible.checked = values.visible === undefined ? true : values.visible;
+                html.conds.value = values.conditions;
             } else {
                 html.x.value = 1;
                 html.y.value = 1;
@@ -446,127 +466,6 @@ class TokenManager extends HTMLElement {
         }
 
         let masterRidx = 1;
-        function addTokenOld(values) {
-            let html = `
-            <summary><span>Participant</span> <code>xx</code></summary>
-            <div style="display: flex;">
-                <input type="text" placeholder="Participant name" style="flex: 1 1 auto; width: 40%;">
-                <input type="url" placeholder="token image URL" style="flex: 1 1 auto; width: 40%;" list="imgur-tokens-datalist">
-            </div>
-            <div style="display: flex; align-items: center">
-                <button style="flex: 1 1 auto; border-width: 0; background: transparent">-</button>
-                <input type="number" style="flex: 1 1 auto; width: 20%;">
-                <input type="number" style="flex: 1 1 auto; width: 20%;">
-                <label style="position: relative; flex: 1 1 auto;">
-                    <button style="width: 100%; border-width: 0; background: transparent">Cnd</button>
-                    <ul style="display: none; position: fixed; overflow: scroll; background-clip: padding-box; background-color: white; color: black; top: 50%; left: 50%; height: 80vh; width: 40vw; min-width: 400px; border: 1000px solid rgba(128, 128, 128, 0.8); transform: translateX(-50%) translateY(-50%); margin: 2px 0 0 0; padding: 0; list-style-type: none; white-space: nowrap;">
-<li style="padding:0.2em 1em;margin:0"><label title="can't see; attacks at advantage; attacking at disadvantage"><input style="display:inline" type="checkbox">Blinded</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="attacks on you at disadvantage"><input style="display:inline" type="checkbox">Blurred</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="can't attack charmer; charmer has advantage on interactions"><input style="display:inline" type="checkbox">Charmed</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="can't hear"><input style="display:inline" type="checkbox">Deafened</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="complex rules; look them up"><input style="display:inline" type="checkbox">Exhaustion</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="disadvantage on checks and attacking while it can see the source; can't willingly move closer"><input style="display:inline" type="checkbox">Frightened</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="speed 0"><input style="display:inline" type="checkbox">Grappled</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="double speed; AC+2; dex save at advantage; extra action"><input style="display:inline" type="checkbox">Hasted</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="can't take actions or reactions"><input style="display:inline" type="checkbox">Incapacitated</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="attacks at disadvantage; attacking at advantage"><input style="display:inline" type="checkbox">Invisible</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; fails str/dex saves; attacks at advantage; all melee hits are crits"><input style="display:inline" type="checkbox">Paralyzed</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; speed 0; fails str/dex saves; resistant to all damage; immune to poison and disease"><input style="display:inline" type="checkbox">Petrified</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="attacking and checks at disadvantage"><input style="display:inline" type="checkbox">Poisoned</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="half movement to stand; melee attacks at advantage; ranged attacks at disadvantage; attacking at disadvantage"><input style="display:inline" type="checkbox">Prone</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="speed 0; attacks at advantage; attacking at disadvantage; dex saves at disadvantage"><input style="display:inline" type="checkbox">Restrained</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; fails str/dex saves; attacks at advantage"><input style="display:inline" type="checkbox">Stunned</label></li>
-<li style="padding:0.2em 1em;margin:0"><label title="incapacitated; prone; fails str/dex saves; attacks at advantage; melee attacks auto-crit"><input style="display:inline" type="checkbox">Unconscious</label></li>
-                    </ul>
-                </label>
-            </div>
-            `;
-
-            let container = document.createElement("details");
-            container.innerHTML = html;
-            container.style.clear = "both";
-            let contents = {
-                container: container,
-                url: container.querySelectorAll("input")[1],
-                name: container.querySelectorAll("input")[0],
-                x: container.querySelectorAll("input")[2],
-                y: container.querySelectorAll("input")[3],
-                flags_button: container.querySelectorAll("button")[1],
-                flags_list: container.querySelector("ul"),
-                remove: container.querySelectorAll("button")[0],
-                summary: container.querySelector("summary"),
-                summary_name: container.querySelector("summary span"),
-                summary_coords: container.querySelector("summary code"),
-                ridx: masterRidx++
-            }
-
-            contents.summary_name.textContent = (values ? values.name : null) || "Participant";
-            tools.appendChild(contents.container);
-            contents.url.addEventListener("input", serialise, false);
-            contents.name.addEventListener("input", function() {
-                contents.summary_name.textContent = contents.name.value;
-                serialise();
-            }, false);
-            async function setCoords(el, x, y) {
-                let tlx = await tm.toolsElement.load("export-tlx"),
-                    tly = await tm.toolsElement.load("export-tly"),
-                    brx = await tm.toolsElement.load("export-brx"),
-                    bry = await tm.toolsElement.load("export-bry"),
-                    gx1 = await tm.toolsElement.load("grid-x1"),
-                    gx2 = await tm.toolsElement.load("grid-x2"),
-                    gy = await tm.toolsElement.load("grid-y");
-                let square = Math.abs(gx2 - gx1);
-                let gridSettingsXOffset = gx1 % square;
-                let gridSettingsYOffset = gy % square;
-                let widthOfReal = brx - tlx;
-                let heightOfReal = bry - tly;
-                let exportSquaresLeft = (tlx- gridSettingsXOffset) / square;
-                let exportSquaresTop = (tly - gridSettingsYOffset) / square;
-                let exportSquaresWidth = widthOfReal / square;
-                let exportSquaresHeight = heightOfReal / square;
-                let coordx = contents.x.valueAsNumber - exportSquaresLeft + 1;
-                let coordy = contents.y.valueAsNumber - exportSquaresTop + 1;
-                let coordtext = String.fromCharCode(64 + coordx) + coordy;
-                if (coordx < 1 || coordy < 1 || coordx > exportSquaresWidth || coordy > exportSquaresHeight) {
-                    coordtext = "??";
-                }
-                el.textContent = coordtext;
-
-            }
-            contents.x.addEventListener("input", async function() {
-                setCoords(contents.summary_coords, contents.x.valueAsNumber, contents.y.valueAsNumber);
-                serialise();
-            }, false);
-            contents.y.addEventListener("input", async function() {
-                setCoords(contents.summary_coords, contents.x.valueAsNumber, contents.y.valueAsNumber);
-                serialise();
-            }, false);
-            contents.remove.addEventListener("click", function() {
-                if (tokens.length == 1) { return; }
-                if (!confirm("Remove " + contents.name.value + "?")) return;
-                contents.container.remove();
-                tokens = tokens.filter(function(t) { return t.ridx != contents.ridx; })
-                serialise();
-            }, false);
-            contents.flags_button.addEventListener("click", function() {
-                contents.flags_list.style.display = contents.flags_list.style.display == "none" ? "block" : "none";
-            });
-            contents.flags_list.addEventListener("change", serialise, false);
-
-            if (values && values.url) {
-                contents.url.value = values.url;
-                contents.name.value = values.name;
-                contents.x.value = values.x;
-                contents.y.value = values.y;
-                setCoords(contents.summary_coords, contents.x.valueAsNumber, contents.y.valueAsNumber);
-                if (values.conditions && Array.isArray(values.conditions)) {
-                    Array.from(contents.flags_list.querySelectorAll("input")).forEach(i => {
-                        if (values.conditions.includes(i.parentNode.textContent)) i.checked = true;
-                    })
-                }
-            }
-            tokens.push(contents);
-        }
 
         let tokens = [];
 
@@ -591,18 +490,7 @@ class TokenManager extends HTMLElement {
             let ctx = e.detail.ctx;
             if (tokens.length == 0) return;
             //console.log(tokens);
-            tm.renderTokens(ctx, tokens.map(t => {
-                return {
-                    url: t.image.value,
-                    name: t.name.value,
-                    x: t.x.valueAsNumber,
-                    y: t.y.valueAsNumber,
-                    visible: t.visible.checked,
-                    //conditions: Array.from(t.flags_list.querySelectorAll("input"))
-                    //.filter(i => i.checked).map(i => i.parentNode.textContent)
-                    conditions: []
-                }
-            }));
+            tm.renderTokens(ctx, tokens.map(serialiseSingleToken).filter(function(t) { return t; }));
         };
         this.IMAGECACHE = {};
     }
