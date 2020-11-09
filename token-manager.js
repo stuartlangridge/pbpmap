@@ -636,10 +636,52 @@ class TokenManager extends HTMLElement {
                 ctx.restore();
 
                 if (t.conditions.length > 0) {
-                    ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
-                    ctx.lineWidth = 3;
-                    ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
+                    ctx.save();
+                    let condstr = t.conditions.join("/");
+                    condstr = shorten(condstr, 30);
+                    ctx.font = "6px monospace";
+                    let fontHeight = ctx.measureText("M").width + 3; // bodge, but ok
+                    let cx = xpos + (containedSize / 2) + margin;
+                    let cy = ypos + (containedSize / 2) + margin;
+
+                    // draw inner ring for conditions
+                    ctx.lineWidth = fontHeight;
+                    let r = (containedSize / 2) - (ctx.lineWidth * 0.75);
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2, true);
                     ctx.stroke();
+                    ctx.closePath();
+
+                    // write conditions on top of ring, letter by letter
+                    ctx.fillStyle = "black";
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                    let totalang = 0;
+                    for (let i=0; i<condstr.length; i++) {
+                        let ch = condstr.charAt(i);
+                        let upto = condstr.substr(0, i);
+                        let incl = condstr.substr(0, i + 1);
+                        let upto_w = ctx.measureText(upto).width;
+                        let incl_w = ctx.measureText(incl).width;
+                        let dw = incl_w - upto_w;
+                        dw = ctx.measureText(ch).width;
+                        // calculate angle that would be dw wide at radius distance
+                        let ang = Math.atan(dw / r);
+                        if (i === 0) {
+                          // try to "centre" the rotated text around 12'o'clock
+                          // assume that the total length of text in angle is
+                          // text length * this angle, and subtract half that
+                          totalang = -(ang * condstr.length) / 2;
+                        }
+                        ctx.save();
+                        ctx.translate(cx, cy);
+                        ctx.rotate(totalang);
+                        ctx.fillText(ch, -dw/2, -r + (ctx.lineWidth * 0.5) - 1);
+                        ctx.restore();
+                        totalang += ang;
+                    }
+                    ctx.save();
                 }
 
                 ctx.shadowBlur = 0;
@@ -666,20 +708,6 @@ class TokenManager extends HTMLElement {
                 ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
                 ctx.fillText(t.name, textBoxX, textBoxY + padding + padding);
 
-                if (t.conditions.length > 0) {
-                    let condstr = t.conditions.join("/");
-                    condstr = shorten(condstr, 15);
-                    fontSize -= 3;
-                    ctx.font = fontSize + "px sans-serif";
-                    metrics = ctx.measureText(condstr);
-                    textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
-                    textBoxY = ypos + 2;
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-                    ctx.fillRect(textBoxX - padding, textBoxY - padding - padding,
-                        metrics.width + padding + padding, fontSize + padding + padding);
-                    ctx.fillStyle = "black";
-                    ctx.fillText(condstr, textBoxX, textBoxY + padding);
-                }
                 if (!t.visible) ctx.globalAlpha = 1.0;
 
                 if (done) done();
