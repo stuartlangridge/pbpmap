@@ -442,7 +442,6 @@ class TokenManager extends HTMLElement {
             }, false);
 
             if (values && values.url) {
-                console.log("restoring", values)
                 html.image.value = values.url;
                 html.name.value = values.name;
                 html.heading.firstChild.nodeValue = values.name;
@@ -600,9 +599,17 @@ class TokenManager extends HTMLElement {
                 ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
                 let fontSize = Math.floor(containedSize / 5);
                 let padding = 3;
+                let nameToWrite = t.name;
                 fontSize = Math.max(fontSize, 8);
                 ctx.font = "bold " + fontSize + "px sans-serif";
-                let metrics = ctx.measureText(t.name);
+                let metrics = ctx.measureText(nameToWrite);
+                if (metrics.width > containedSize) {
+                    // text is too wide, so feed it to shorten to make it shorter
+                    const ratioTooBig = metrics.width / containedSize;
+                    const charactersToAimFor = Math.ceil(nameToWrite.length / ratioTooBig);
+                    nameToWrite = shorten(nameToWrite, charactersToAimFor);
+                    metrics = ctx.measureText(nameToWrite);
+                }
                 ctx.fillStyle = "black";
                 let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
                 let textBoxY = ypos + containedSize - fontSize;
@@ -617,8 +624,8 @@ class TokenManager extends HTMLElement {
                 ctx.fillStyle = "black";
                 ctx.strokeStyle = "white";
                 ctx.lineWidth = 4;
-                ctx.strokeText(t.name, textBoxX, textBoxY + padding + padding);
-                ctx.fillText(t.name, textBoxX, textBoxY + padding + padding);
+                ctx.strokeText(nameToWrite, textBoxX, textBoxY + padding + padding);
+                ctx.fillText(nameToWrite, textBoxX, textBoxY + padding + padding);
 
                 if (!t.visible) ctx.globalAlpha = 1.0;
 
