@@ -522,6 +522,9 @@ class TokenManager extends HTMLElement {
                 grab.y = Math.floor(img.naturalHeight / 2 - grab.size / 2);
 
                 let containedSize = gridSettings.size - margin - margin;
+                if (t.name.indexOf("(large)") > -1) {
+                    containedSize = containedSize * 2;
+                }
 
                 ctx.beginPath();
                 ctx.shadowBlur = 5;
@@ -598,8 +601,9 @@ class TokenManager extends HTMLElement {
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
                 let fontSize = Math.floor(containedSize / 5);
+                if (t.name.indexOf("(large)") > -1) { fontSize = Math.floor(fontSize / 2); }
                 let padding = 3;
-                let nameToWrite = t.name;
+                let nameToWrite = t.name.replace(/ \(large\)/, "");
                 fontSize = Math.max(fontSize, 8);
                 ctx.font = "bold " + fontSize + "px sans-serif";
                 let metrics = ctx.measureText(nameToWrite);
