@@ -340,7 +340,7 @@ class TokenManager extends HTMLElement {
 
             let holdingIV, holdingCount;
             html.up.addEventListener("click", () => { 
-                html.y.value = Math.max(html.y.valueAsNumber - 1, 1); serialise();
+                html.y.value = Math.max(html.y.valueAsNumber - 1, 0); serialise();
                 clearInterval(holdingIV);
             }, false);
             html.down.addEventListener("click", () => { 
@@ -348,7 +348,7 @@ class TokenManager extends HTMLElement {
                 clearInterval(holdingIV);
             }, false);
             html.left.addEventListener("click", () => { 
-                html.x.value = Math.max(html.x.valueAsNumber - 1, 1); serialise();
+                html.x.value = Math.max(html.x.valueAsNumber - 1, 0); serialise();
                 clearInterval(holdingIV);
             }, false);
             html.right.addEventListener("click", () => { 
@@ -524,6 +524,7 @@ class TokenManager extends HTMLElement {
                 let containedSize = gridSettings.size - margin - margin;
                 if (t.name.indexOf("(large)") > -1) {
                     containedSize = containedSize * 2;
+                    ctx.globalAlpha = 0.4;
                 }
 
                 ctx.beginPath();
@@ -549,6 +550,7 @@ class TokenManager extends HTMLElement {
                 ctx.stroke();
                 ctx.restore();
 
+                ctx.globalAlpha = 1;
                 if (t.conditions.length > 0) {
                     ctx.save();
                     let condstr = t.conditions.join("/");
