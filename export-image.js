@@ -121,9 +121,6 @@ class ExportImage extends HTMLElement {
                     }
                 }
 
-                // render the new tokens into our canvas
-                await that.callTokenManagerToRenderTokens(mapSectionCtx, movedTokens, overrideGridSettings);
-                
                 // and get the effects
                 let load_effects = await that.toolsElement.load("effects");
                 if (!Array.isArray(load_effects)) load_effects = [];
@@ -138,6 +135,9 @@ class ExportImage extends HTMLElement {
 
                 // render the new tokens into our canvas
                 await that.callBattlefieldEffectsToRenderEffects(mapSectionCtx, movedEffects, overrideGridSettings);
+                
+                // render the new tokens into our canvas (done after effects so they're on top)
+                await that.callTokenManagerToRenderTokens(mapSectionCtx, movedTokens, overrideGridSettings);
                 
                 // now, create a new canvas which has the numbers/letters on it
                 let withLettersCanvas = document.createElement("canvas");
