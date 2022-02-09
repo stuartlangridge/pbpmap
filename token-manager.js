@@ -526,6 +526,10 @@ class TokenManager extends HTMLElement {
                     containedSize = containedSize * 2;
                     ctx.globalAlpha = 0.4;
                 }
+                let isIcon = false;
+                if (t.name.indexOf("(icon)") > -1) {
+                    isIcon = true;
+                }
 
                 ctx.beginPath();
                 ctx.shadowBlur = 5;
@@ -533,7 +537,7 @@ class TokenManager extends HTMLElement {
                 ctx.shadowColor = "black";
                 ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                 ctx.fillStyle = "black";
-                ctx.fill();
+                if (!isIcon) ctx.fill();
 
                 ctx.beginPath();
                 ctx.save();
@@ -547,7 +551,7 @@ class TokenManager extends HTMLElement {
                 ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 4;
-                ctx.stroke();
+                if (!isIcon) ctx.stroke();
                 ctx.restore();
 
                 ctx.globalAlpha = 1;
@@ -630,8 +634,8 @@ class TokenManager extends HTMLElement {
                 ctx.fillStyle = "black";
                 ctx.strokeStyle = "white";
                 ctx.lineWidth = 4;
-                ctx.strokeText(nameToWrite, textBoxX, textBoxY + padding + padding);
-                ctx.fillText(nameToWrite, textBoxX, textBoxY + padding + padding);
+                if (!isIcon) ctx.strokeText(nameToWrite, textBoxX, textBoxY + padding + padding);
+                if (!isIcon) ctx.fillText(nameToWrite, textBoxX, textBoxY + padding + padding);
 
                 if (!t.visible) ctx.globalAlpha = 1.0;
 
