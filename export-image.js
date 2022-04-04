@@ -7,7 +7,24 @@ class ExportImage extends HTMLElement {
         let ctx = canvas.getContext("2d");
         let btn = document.createElement("button");
         btn.appendChild(document.createTextNode("Export to image"));
-        btn.style.width = "100%";
+        let sizechooser = document.createElement("select");
+        [600, 1200, 1800].forEach(w => {
+            let opt = document.createElement("option");
+            opt.text = w;
+            opt.value = w;
+            sizechooser.appendChild(opt);
+        });
+        sizechooser.style.fontSize = "12px";
+        sizechooser.style.fontWeight = "normal";
+        btn.style.flex = "1 1 auto";
+        let btnbox = document.createElement("div");
+        btnbox.style.width = "100%";
+        btnbox.append(btn);
+        btnbox.append(sizechooser);
+        btnbox.style.display = "flex";
+        sizechooser.onchange = () => {
+            if (ei && ei.toolsElement) ei.toolsElement.save("outputImageSize", sizechooser.value);
+        }
         let ei = this;
 
         let container = document.createElement("div");
@@ -168,7 +185,7 @@ class ExportImage extends HTMLElement {
                 withLettersCtx.drawImage(mapSectionCanvas, 0, 0, widthOfReal, heightOfReal, square, square, widthOfReal, heightOfReal);
 
                 // make a new scaled canvas to be no bigger than our maximum square
-                let maxOutputSize = 1800;
+                let maxOutputSize = parseInt(sizechooser.value);
                 let oCanvas = document.createElement("canvas");
                 let oCtx = oCanvas.getContext("2d");
                 if (widthOfReal > heightOfReal) {
@@ -195,10 +212,14 @@ class ExportImage extends HTMLElement {
 
         }, false);
 
-        let iv = setInterval(() => {
+        let iv = setInterval(async () => {
             if (window.addTools) {
                 clearInterval(iv);
-                [this.toolsElement, this.toolDialogSection] = window.addTools("Export to image", [btn], {noHeading:true});
+                [this.toolsElement, this.toolDialogSection] = window.addTools("Export to image", [btnbox], {noHeading:true});
+                let outputImageSize = await ei.toolsElement.load("outputImageSize");
+                if (outputImageSize) {
+                    sizechooser.value = outputImageSize
+                }
             }
         }, 50);
 
