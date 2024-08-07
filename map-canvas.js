@@ -48,20 +48,26 @@ class MapCanvas extends HTMLElement {
             main.error::before { content: "error loading map"; }
             div.buttons {
                 position: absolute;
-                top: calc(50vh - 50px);
+                top: 0;
                 left: 0;
                 display: none;
-                opacity: 0.5;
+                opacity: 0.6;
                 width: 100vw;
+                user-select: none;
             }
             div.buttons button {
                 height: 50px;
                 flex: 1 1 auto;
-                font-size: 35px;
+                font-size: 15px;
+                touch-action: manipulation;
             }
             @media (max-width: 750px) {
                 div.buttons {
                     display: flex;
+                }
+                main {
+                    width: 100vw; /* don't exclude tool dialogue */
+                    height: 50vh; /* exclude tool dialogue */
                 }
             }
         `;
@@ -185,8 +191,14 @@ class MapCanvas extends HTMLElement {
             const down = document.createElement("button");
             const left = document.createElement("button");
             const right = document.createElement("button");
-            zoomIn.onclick = e => { zoom(1); }
-            zoomOut.onclick = e => { zoom(-1); }
+            zoomIn.onclick = e => { 
+                lastX = 0; lastY = 0;
+                zoom(4);
+            }
+            zoomOut.onclick = e => {
+                lastX = 0; lastY = 0;
+                zoom(-4);
+            }
             up.onclick = e => { moveCanvas(0, -30); }
             down.onclick = e => { moveCanvas(0, 30); }
             left.onclick = e => { moveCanvas(-30, 0); }
