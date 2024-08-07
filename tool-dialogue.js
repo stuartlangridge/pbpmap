@@ -47,6 +47,11 @@ class ToolDialogue extends HTMLElement {
                 font-family: Roboto, sans-serif;
                 padding: 0 0.5em;
             }
+            @media (max-width: 750px) {
+                #container {
+                    height: 50vh;
+                }
+            }
             #container.ghostly {
                 opacity: 0.1;
             }
@@ -60,6 +65,9 @@ class ToolDialogue extends HTMLElement {
                 list-style: none;
                 margin-left: -0.5em;
                 margin-right: -0.5em;
+            }
+            #container > details > summary::-webkit-details-marker {
+                display: none;
             }
             #container > details > summary > h2 {
                 margin: 0;
