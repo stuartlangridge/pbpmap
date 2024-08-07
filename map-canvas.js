@@ -4,7 +4,7 @@ class MapCanvas extends HTMLElement {
 
         let mc = this;
         const shadow = this.attachShadow({mode: 'open'});
-        const container = document.createElement("div");
+        const container = document.createElement("main");
         this.container = container;
         container.className = "waiting";
         const canvas = document.createElement("canvas");
@@ -12,6 +12,7 @@ class MapCanvas extends HTMLElement {
         this.ctx = canvas.getContext("2d");
         container.appendChild(canvas);
         shadow.appendChild(container);
+        shadow.appendChild(makeMobileButtons());
         const that = this;
 
         this.redrawEvent = new CustomEvent('map-redraw', { detail: { ctx: this.ctx }});
@@ -24,15 +25,16 @@ class MapCanvas extends HTMLElement {
 
         const styles = document.createElement("style");
         styles.textContent = `
-            div {
+            main {
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 75vw; /* excludes 25vw which is the width of the tool dialogue */
                 height: 100vh;
                 align-items: center;
+                overflow: hidden;
             }
-            div::before {
+            main::before {
                 position: absolute;
                 top: 40%;
                 left: 0;
@@ -41,9 +43,27 @@ class MapCanvas extends HTMLElement {
                 text-align: center;
                 z-index: -1;
             }
-            div.waiting::before { content: "waiting for map URL"; }
-            div.loading::before { content: "loading map"; }
-            div.error::before { content: "error loading map"; }
+            main.waiting::before { content: "waiting for map URL"; }
+            main.loading::before { content: "loading map"; }
+            main.error::before { content: "error loading map"; }
+            div.buttons {
+                position: absolute;
+                top: calc(50vh - 50px);
+                left: 0;
+                display: none;
+                opacity: 0.5;
+                width: 100vw;
+            }
+            div.buttons button {
+                height: 50px;
+                flex: 1 1 auto;
+                font-size: 35px;
+            }
+            @media (max-width: 750px) {
+                div.buttons {
+                    display: flex;
+                }
+            }
         `;
         shadow.appendChild(styles);
 
@@ -148,6 +168,43 @@ class MapCanvas extends HTMLElement {
         let lastX = canvas.width/2, lastY = canvas.height/2;
         let scaleFactor = 1.1;
         let dragStart,dragged;
+
+        function makeMobileButtons() {
+            // movement and zoom buttons for mobile
+            // this should be done with touch events, but we go basic
+            function moveCanvas(x, y) {
+                that.ctx.translate(x, y);
+                document.dispatchEvent(new Event('request-map-redraw'));
+            }
+
+            const cont = document.createElement("div");
+            cont.className = "buttons";
+            const zoomIn = document.createElement("button");
+            const zoomOut = document.createElement("button");
+            const up = document.createElement("button");
+            const down = document.createElement("button");
+            const left = document.createElement("button");
+            const right = document.createElement("button");
+            zoomIn.onclick = e => { zoom(1); }
+            zoomOut.onclick = e => { zoom(-1); }
+            up.onclick = e => { moveCanvas(0, -30); }
+            down.onclick = e => { moveCanvas(0, 30); }
+            left.onclick = e => { moveCanvas(-30, 0); }
+            right.onclick = e => { moveCanvas(30, 0); }
+            up.append("⬆");
+            down.append("⬇");
+            left.append("⬅");
+            right.append("➡");
+            zoomIn.append("+");
+            zoomOut.append("-");
+            cont.append(up);
+            cont.append(down);
+            cont.append(left);
+            cont.append(right);
+            cont.append(zoomIn);
+            cont.append(zoomOut);
+            return cont;
+        }
 
         canvas.addEventListener('mousedown',function(evt) {
             if (evt.buttons != 4) return; // middle mouse only
