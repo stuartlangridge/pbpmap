@@ -182,6 +182,11 @@ class MapCanvas extends HTMLElement {
                 that.ctx.translate(x, y);
                 document.dispatchEvent(new Event('request-map-redraw'));
             }
+            function zoomAroundCentre(z) {
+                lastX = shadow.querySelector("main").offsetWidth / 2;
+                lastY = shadow.querySelector("main").offsetHeight / 2;
+                zoom(z);
+            }
 
             const cont = document.createElement("div");
             cont.className = "buttons";
@@ -191,18 +196,12 @@ class MapCanvas extends HTMLElement {
             const down = document.createElement("button");
             const left = document.createElement("button");
             const right = document.createElement("button");
-            zoomIn.onclick = e => { 
-                lastX = 0; lastY = 0;
-                zoom(4);
-            }
-            zoomOut.onclick = e => {
-                lastX = 0; lastY = 0;
-                zoom(-4);
-            }
-            up.onclick = e => { moveCanvas(0, -30); }
-            down.onclick = e => { moveCanvas(0, 30); }
-            left.onclick = e => { moveCanvas(-30, 0); }
-            right.onclick = e => { moveCanvas(30, 0); }
+            zoomIn.onclick = () => { zoomAroundCentre(4); }
+            zoomOut.onclick = () => { zoomAroundCentre(-4); }
+            up.onclick = e => { moveCanvas(0, 30); }
+            down.onclick = e => { moveCanvas(0, -30); }
+            left.onclick = e => { moveCanvas(30, 0); }
+            right.onclick = e => { moveCanvas(-30, 0); }
             up.append("⬆");
             down.append("⬇");
             left.append("⬅");
