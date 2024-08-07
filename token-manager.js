@@ -65,6 +65,9 @@ class TokenManager extends HTMLElement {
         #tm details > summary {
             list-style: none;
         }
+        #tm details > summary::-webkit-details-marker {
+            display: none;
+        }
         #tm details > summary > .heading::after {
             content: "»";
             display: block;
