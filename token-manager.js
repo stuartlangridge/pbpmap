@@ -103,6 +103,7 @@ class TokenManager extends HTMLElement {
             flex: 1 0;
         }
         #tm details .container .name_summon_container .visible_label,
+        #tm details .container .name_summon_container .tint,
         #tm details .container .image_summon_container .clone,
         #tm details .container .image_summon_container .conds_summon {
             flex: 0 1;
@@ -113,6 +114,13 @@ class TokenManager extends HTMLElement {
             margin-left: 2px;
             min-width: 22px;
         }
+        #tm details .container .name_summon_container .tint { /* try to remove default styling */
+            -webkit-appearance: none;
+            appearance: none;
+            border: 0;
+            padding: 0;
+        }
+
         #tm details .container .image_summon_container .conds { display: none; } /* hide input */
         #tm details .container .name_summon_container .visible_label {
             background: transparent;
@@ -213,7 +221,8 @@ class TokenManager extends HTMLElement {
                 x: t.x.valueAsNumber,
                 y: t.y.valueAsNumber,
                 visible: t.visible.checked,
-                conditions: t.conds.value.split(",").filter(s => s.length > 0)
+                conditions: t.conds.value.split(",").filter(s => s.length > 0),
+                tint: t.tint.value
             }
             return ret;
         }
@@ -291,6 +300,7 @@ class TokenManager extends HTMLElement {
                 clone: document.createElement("button"),
                 conds_summon: document.createElement("button"),
                 conds: document.createElement("input"),
+                tint: document.createElement("input"),
             }
             let details =  document.createElement("details");
             let summary = document.createElement("summary");
@@ -306,6 +316,7 @@ class TokenManager extends HTMLElement {
             html.name_summon_container.appendChild(html.name_summon);
             html.name_summon_container.appendChild(html.visible);
             html.name_summon_container.appendChild(html.visible_label);
+            html.name_summon_container.appendChild(html.tint);
             html.image_summon_container.appendChild(html.image_summon);
             html.image_summon_container.appendChild(html.clone);
             html.image_summon_container.appendChild(html.conds);
@@ -317,6 +328,7 @@ class TokenManager extends HTMLElement {
             html.x.type = "number";
             html.y.type = "number";
             html.image.type = "url";
+            html.tint.type = "color";
 
             // contents
             html.coords.textContent = "K7";
@@ -333,6 +345,7 @@ class TokenManager extends HTMLElement {
             html.clone.title = "Duplicate";
             html.conds_summon.textContent = "🤢";
             html.conds_summon.title = "Conditions";
+            html.tint.title = "Tint";
 
             // handlers
             html.remove.addEventListener("click", () => {
@@ -381,6 +394,7 @@ class TokenManager extends HTMLElement {
             html.right.addEventListener("mouseup", () => { clearInterval(holdingIV); }, false);
 
             html.visible.addEventListener("change", () => { serialise(); }, false);
+            html.tint.addEventListener("change", () => { serialise(); }, false);
             html.clone.addEventListener("click", () => {
                 let mydetails = serialiseSingleToken(html);
                 let allNames = tokens.map(serialiseSingleToken).map(t => t.name);
@@ -455,6 +469,7 @@ class TokenManager extends HTMLElement {
                 html.image_summon.textContent = "";
                 html.visible.checked = values.visible === undefined ? true : values.visible;
                 html.conds.value = values.conditions;
+                html.tint.value = values.tint || "#ffffff";
             } else {
                 html.x.value = 1;
                 html.y.value = 1;
@@ -462,6 +477,7 @@ class TokenManager extends HTMLElement {
                 html.image_summon.style.backgroundImage = "none";
                 html.image_summon.textContent = "token image";
                 html.visible.checked = true;
+                html.tint.value = "#ffffff";
             }
             tokens.push(html);
             tools.appendChild(details);
@@ -550,7 +566,20 @@ class TokenManager extends HTMLElement {
                 ctx.clip();
 
                 ctx.drawImage(img, grab.x, grab.y, grab.size, grab.size, xpos, ypos, containedSize, containedSize);
-
+                if (t.tint.toLowerCase() == "#ffffff") {
+                    // we don't actually tint with white: this means don't tint at all
+                } else {
+                    // tint image
+                    const gradient = ctx.createLinearGradient(xpos, ypos, 
+                        xpos + containedSize + margin, ypos + containedSize + margin);
+                    gradient.addColorStop(0, t.tint + "00");
+                    gradient.addColorStop(1, t.tint + "bb");
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
+                    ctx.fill()
+                    ctx.closePath();
+                }
                 ctx.arc(xpos + (containedSize / 2) + margin, ypos + (containedSize / 2) + margin, containedSize / 2, 0, Math.PI * 2, true);
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 4;
