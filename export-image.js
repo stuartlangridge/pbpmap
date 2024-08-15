@@ -122,7 +122,8 @@ class ExportImage extends HTMLElement {
                         x: t.x - exportSquaresLeft,
                         y: t.y - exportSquaresTop,
                         visible: t.visible === undefined ? true : !!t.visible,
-                        conditions: t.conditions || []
+                        conditions: t.conditions || [],
+                        tint: t.tint || "white"
                     };
                 })
 
