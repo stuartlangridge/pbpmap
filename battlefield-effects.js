@@ -273,7 +273,7 @@ class BattlefieldEffects extends HTMLElement {
             html.right.textContent = "→";
             html.up.textContent = "↑";
             html.down.textContent = "↓";
-            "◯□".split("").forEach(o => {
+            "◯□ʍ".split("").forEach(o => {
                 let op = document.createElement("option"); op.text = o; html.shape.appendChild(op); });
             "█▓▒░".split("").forEach(o => {
                 let op = document.createElement("option"); op.text = o; html.opacity.appendChild(op); });
@@ -411,7 +411,52 @@ class BattlefieldEffects extends HTMLElement {
                 ctx.fillRect(cxp - squareSize * radiusSquares, cyp - squareSize * radiusSquares,
                     squareSize * (radiusSquares * 2 + 1), squareSize * (radiusSquares * 2 + 1));
                 done();
-            }
+            },
+            FIRE: (ctx, mainColour, radiusSquares, opacity, cxp, cyp, squareSize, done) => {
+                let opacityHex = ((opacity * 256) - 1).toString(16);
+                let colour8digits = mainColour + opacityHex;
+                ctx.fillStyle = colour8digits;
+
+                const boxx = cxp - squareSize * radiusSquares;
+                const boxy = cyp - squareSize * radiusSquares;
+                const boxw = squareSize * (radiusSquares * 2 + 1);
+                const M = boxw / 32; // circles are in a 32x32 box
+
+                const COLS = [
+                    "#ff0000" + opacityHex,
+                    "#ff7000" + opacityHex,
+                    "#ffd700" + opacityHex 
+                ];
+
+                function R(min, max) {
+                    const r = Math.random() * (max - min) + min;
+                    return Math.max(min, Math.min(r, max));
+                }
+
+                COLS.forEach((col, idx) => {
+                    [1,2,3,4,5].forEach(i => {
+                        // circle can't be bigger than half of 32x32 box
+                        // bias size downwards by idx so red circles are bigger than yellow
+                        const r = R(5 - idx, (32 / 2) - (idx * 5));
+                        const gap = (32 - r) / 2;
+                        const drawx = R(gap, 32 - gap);
+                        const drawy = R(gap, 32 - gap);
+
+                        const cx = boxx + (drawx * M);
+                        const cy = boxy + (drawy * M);
+                        const cr = r * M;
+
+                        console.log({drawx, drawy})
+                        ctx.fillStyle = col;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, cr, 0, 2*3.1415);
+                        ctx.closePath();
+                        ctx.fill();
+                    });
+                })
+
+                done();
+            },
         }
     }
 
@@ -437,7 +482,8 @@ class BattlefieldEffects extends HTMLElement {
             let cxp = gridSettings.xoffset + (ne.x * gridSettings.size);
             let cyp = gridSettings.yoffset + (ne.y * gridSettings.size);
             if (overallAlpha) { ctx.globalAlpha = overallAlpha; }
-            let fn = {"◯": bfe.EFFECTS.CIRCLE , "□": bfe.EFFECTS.SQUARE}[ne.shape];
+            let fn = {"◯": bfe.EFFECTS.CIRCLE , "□": bfe.EFFECTS.SQUARE,
+                "ʍ": bfe.EFFECTS.FIRE}[ne.shape];
             let opacity = {"░": 0.25, "▒": 0.5, "▓": 0.75, "█": 1.0}[ne.opacity];
             let size = {"0ft": 0, "5ft": 1, "10ft": 2, "15ft": 3, "20ft": 4, "30ft": 6}[ne.size];
             fn(ctx, ne.colour, size, opacity, cxp, cyp, gridSettings.size, doNext);
