@@ -28,6 +28,7 @@ class ScreenManager extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 display: none;
+                overflow-y: scroll;
             }
         `;
 
@@ -104,6 +105,7 @@ class ScreenManager extends HTMLElement {
         this.container.style.display = "flex";
         let that = this;
         let maps = await this.toolsElement.getMaps();
+        maps = maps.sort((a, b) => { return (a.name || "Unknown").localeCompare(b.name || "Unknown")})
         maps.forEach(function(m) {
             let li = document.createElement("li");
             let a = document.createElement("a");
