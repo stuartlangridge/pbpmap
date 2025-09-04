@@ -566,7 +566,7 @@ class TokenManager extends HTMLElement {
                 ctx.clip();
 
                 ctx.drawImage(img, grab.x, grab.y, grab.size, grab.size, xpos, ypos, containedSize, containedSize);
-                if (!t.tint || t.tint.toLowerCase() == "#ffffff") {
+                if (!t.tint || t.tint.toLowerCase() == "#ffffff" || t.tint.toLowerCase() == "white") {
                     // we don't actually tint with white: this means don't tint at all
                 } else {
                     // tint image
