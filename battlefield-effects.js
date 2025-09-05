@@ -470,6 +470,66 @@ class BattlefieldEffects extends HTMLElement {
                 done();
             },
             FIRE: (ctx, mainColour, radiusSquares, opacity, cxp, cyp, squareSize, done) => {
+                // random fire effect
+                // mainColour is the brightest colour, so pick yellow, although we only
+                // take the hue from it
+                // we pretend a square is 32x32
+                // we actually calculate a 16x16 square of fire, starting at bottom left
+                // the fire starts as mainColour.h, s=100%, l=64%
+                // it then decays over 16 steps to HSL with h = mainColour.h - 64,
+                //     s=100% (doesn't change), l=0%
+                // (a 64 step left on hue goes from ~yellow to ~red)
+                // (60 would be better, but 64 over 16 steps is nicer, and matches
+                //     with the change to lightness as well)
+                const startHue = HexToHSL(mainColour).h;
+                const boxx = cxp - squareSize * radiusSquares;
+                const boxy = cyp - squareSize * radiusSquares;
+                const boxw = squareSize * (radiusSquares * 2 + 1);
+                const boxh = boxw;
+                const boxcx = boxx + (boxw / 2);
+                const boxcy = boxy + (boxh / 2);
+                const dotw = boxw / 16 / 2;
+                const doth = boxh / 16 / 2;
+                const grid = [];
+                for (let rowi=0; rowi <= 16; rowi++) {
+                    const row = [];
+                    for (let coli=0; coli <= 16; coli++) {
+                        row.push(0);
+                    }
+                    grid.push(row);
+                }
+                grid[0][0] = 0;
+                for (let y=0; y<16; y++) {
+                    for (let x=0; x<16; x++) {
+                        let cur = 0;
+                        if (x==0 && y==0) {
+                            grid[y][x] = 0;
+                            cur = 0;
+                        } else {
+                            const left = x==0 ? 16 : grid[y][x-1];
+                            const down = y==0 ? 16 : grid[y-1][x];
+                            cur = Math.min(left, down);
+                            let decay = Math.floor(Math.random() * 4);
+                            cur += decay;
+                            grid[y][x] = cur;
+                            if (cur > 16) continue;
+                        }
+                        const hueShift = cur * 4;
+                        let hue = startHue - hueShift;
+                        if (hue < 0) hue = 360 + hue;
+                        const col = HSLToHex({h: hue, s: 100, l: 100 - hueShift });
+                        const opacityHex = (((opacity * 256) - 1) - (hueShift * 2.5)).toString(16);
+                        ctx.fillStyle = col + opacityHex;
+                        ctx.fillRect(boxcx + (x * dotw), boxcy + (y * doth), dotw, doth);
+                        ctx.fillRect(boxcx - (x * dotw) - dotw, boxcy + (y * doth), dotw, doth);
+                        ctx.fillRect(boxcx - (x * dotw) - dotw, boxcy - (y * doth) - doth, dotw, doth);
+                        ctx.fillRect(boxcx + (x * dotw), boxcy - (y * doth) - doth, dotw, doth);
+                    }
+                }
+
+                done();
+            },
+            FIRE_old: (ctx, mainColour, radiusSquares, opacity, cxp, cyp, squareSize, done) => {
                 let opacityHex = ((opacity * 256) - 1).toString(16);
                 let colour8digits = mainColour + opacityHex;
                 ctx.fillStyle = colour8digits;
