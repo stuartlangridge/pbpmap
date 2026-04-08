@@ -544,6 +544,9 @@ class TokenManager extends HTMLElement {
                 if (t.name.indexOf("(large)") > -1) {
                     containedSize = containedSize * 2;
                     ctx.globalAlpha = 0.4;
+                } else if (t.name.indexOf("(huge)") > -1) {
+                    containedSize = containedSize * 3;
+                    ctx.globalAlpha = 0.4;
                 }
                 let isIcon = false;
                 if (t.name.indexOf("(icon)") > -1) {
@@ -640,8 +643,9 @@ class TokenManager extends HTMLElement {
                 ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
                 let fontSize = Math.floor(containedSize / 5);
                 if (t.name.indexOf("(large)") > -1) { fontSize = Math.floor(fontSize / 2); }
+                if (t.name.indexOf("(huge)") > -1) { fontSize = Math.floor(fontSize / 3); }
                 let padding = 3;
-                let nameToWrite = t.name.replace(/ \(large\)/, "");
+                let nameToWrite = t.name.replace(/ \(large\)/, "").replace(/ \(huge\)/, "");
                 fontSize = Math.max(fontSize, 8);
                 ctx.font = "bold " + fontSize + "px sans-serif";
                 let metrics = ctx.measureText(nameToWrite);
