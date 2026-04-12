@@ -15,6 +15,83 @@ console.assert(shorten("abcd", 4) == "abcd", "assertion 2");
 console.assert(shorten("ABcdEfghiJ", 4) == "ABEJ", "assertion 3");
 console.assert(shorten("Exhaustion/Incapacitated/Stunned", 15) == "Exhstn/Ind/Snnd", "assertion 4");
 
+async function tokenURLPrompt(title, currentValue) {
+    const base = "https://www.kryogenix.org/code/pbp/map-images/roll20/";
+    const resp = await fetch(base + "tokens.json");
+    const j = await resp.json();
+    const retval = await tokenURLPromptDialog(j, title, currentValue, base);
+    return retval;
+}
+
+function tokenURLPromptDialog(roll20tokens, title, currentValue, base) {
+    return new Promise((resolve, reject) => {
+        const dialog = document.createElement("dialog");
+        dialog.id = "token-chooser";
+        dialog.closedby = "any";
+        const form = document.createElement("form");
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.value = currentValue || "";
+        const sel = document.createElement("select");
+        const empty_opt = document.createElement("option");
+        empty_opt.text = "--- choose token ---";
+        empty_opt.value = "";
+        sel.append(empty_opt);
+        let tokens = Object.entries(roll20tokens);
+        tokens.sort((a, b) => a[0].localeCompare(b[0]))
+        tokens.forEach(([k, v]) => {
+            const opt = document.createElement("option");
+            opt.text = k,
+            opt.value = v;
+            sel.append(opt);
+        })
+        const label_sel = document.createElement("label");
+        label_sel.append("or choose existing token");
+        label_sel.append(sel);
+        const label_inp = document.createElement("label");
+        label_inp.append("URL of token");
+        label_inp.append(inp);
+        const h = document.createElement("h1");
+        h.textContent = title;
+        const ok = document.createElement("button");
+        ok.append("Set token");
+        const cancel = document.createElement("button");
+        cancel.append("Cancel");
+        cancel.formMethod = "dialog"; // so it is handled by the dialog
+        const buttons = document.createElement("div");
+        buttons.id = "token-chooser-buttons";
+        buttons.append(cancel);
+        buttons.append(ok);
+        form.append(h);
+        form.append(label_inp);
+        form.append(label_sel);
+        form.append(buttons);
+        dialog.append(form);
+
+        dialog.addEventListener("close", e => {
+            let ret;
+            if (inp.value != "" && inp.value != currentValue) {
+                // manually entered URL, use it
+                ret = inp.value;
+            } else if (sel.value != "") {
+                // token chosen, use it
+                ret = base + sel.value;
+            } else {
+                ret = currentValue;
+            }
+            dialog.remove();
+            resolve(ret);
+        })
+        ok.addEventListener("click", e => {
+            e.preventDefault(); // don't submit form
+            dialog.close(); // fire close event
+        })
+
+        document.body.append(dialog);
+        dialog.showModal();
+    });
+}
+
 class TokenManager extends HTMLElement {
     constructor() {
         super();
@@ -157,7 +234,6 @@ class TokenManager extends HTMLElement {
             background-position: center 30%;
             font-size: 10px;
         }
-
 
         `;
         tools.appendChild(styles);
@@ -437,13 +513,13 @@ class TokenManager extends HTMLElement {
                 }
             }, false);
 
-            html.image_summon.addEventListener("click", () => {
-                html.image.value = prompt("URL address of token image", html.image.value);
+            html.image_summon.addEventListener("click", async () => {
+                html.image.value = await tokenURLPrompt("Select token image", html.image.value);
                 if (html.image.value == "") {
                     html.image_summon.style.backgroundImage = "none";
                     html.image_summon.textContent = "token image";
                 } else {
-                    html.image_summon.style.backgroundImage = "url(" + html.image.value + ")";
+                    html.image_summon.style.backgroundImage = "url('" + html.image.value + "')";
                     html.image_summon.textContent = "";
                 }
                 serialise();
@@ -465,7 +541,7 @@ class TokenManager extends HTMLElement {
                 html.x.value = values.x;
                 html.y.value = values.y;
                 html.name_summon.textContent = values.name;
-                html.image_summon.style.backgroundImage = "url(" + values.url + ")";
+                html.image_summon.style.backgroundImage = "url('" + values.url + "')";
                 html.image_summon.textContent = "";
                 html.visible.checked = values.visible === undefined ? true : values.visible;
                 html.conds.value = values.conditions;
