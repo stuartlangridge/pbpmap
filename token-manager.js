@@ -500,7 +500,8 @@ class TokenManager extends HTMLElement {
                 serialise();
             }, false);
             html.conds_summon.addEventListener("click", () => {
-                let ncond = prompt("Add or remove a condition by name");
+                const ccon = html.conds.value || "none";
+                let ncond = prompt("Add or remove a condition by name (" + ccon + ")");
                 if (ncond != "") {
                     let curconds = html.conds.value.split(",");
                     if (curconds.includes(ncond)) {
@@ -670,48 +671,28 @@ class TokenManager extends HTMLElement {
                     ctx.save();
                     let condstr = t.conditions.join("/");
                     condstr = shorten(condstr, 30);
-                    ctx.font = "6px monospace";
-                    let fontHeight = ctx.measureText("M").width + 3; // bodge, but ok
-                    let cx = xpos + (containedSize / 2) + margin;
-                    let cy = ypos + (containedSize / 2) + margin;
-
-                    // draw inner ring for conditions
-                    ctx.lineWidth = fontHeight;
-                    let r = (containedSize / 2) - (ctx.lineWidth * 0.75);
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, r, 0, Math.PI * 2, true);
-                    ctx.stroke();
-                    ctx.closePath();
-
-                    // write conditions on top of ring, letter by letter
-                    ctx.fillStyle = "black";
                     ctx.shadowBlur = 0;
                     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
-                    let totalang = 0;
-                    for (let i=0; i<condstr.length; i++) {
-                        let ch = condstr.charAt(i);
-                        let upto = condstr.substr(0, i);
-                        let incl = condstr.substr(0, i + 1);
-                        let upto_w = ctx.measureText(upto).width;
-                        let incl_w = ctx.measureText(incl).width;
-                        let dw = incl_w - upto_w;
-                        dw = ctx.measureText(ch).width;
-                        // calculate angle that would be dw wide at radius distance
-                        let ang = Math.atan(dw / r);
-                        if (i === 0) {
-                          // try to "centre" the rotated text around 12'o'clock
-                          // assume that the total length of text in angle is
-                          // text length * this angle, and subtract half that
-                          totalang = -(ang * condstr.length) / 2;
-                        }
-                        ctx.save();
-                        ctx.translate(cx, cy);
-                        ctx.rotate(totalang);
-                        ctx.fillText(ch, -dw/2, -r + (ctx.lineWidth * 0.5) - 1);
-                        ctx.restore();
-                        totalang += ang;
+                    let fontSize = Math.floor(containedSize / 5);
+                    let padding = 3;
+                    fontSize = Math.max(fontSize, 6);
+                    ctx.font = "bold " + fontSize + "px sans-serif";
+                    let metrics = ctx.measureText(condstr);
+                    if (metrics.width > containedSize) {
+                        // text is too wide, so feed it to shorten to make it shorter
+                        const ratioTooBig = metrics.width / containedSize;
+                        const charactersToAimFor = Math.ceil(condstr.length / ratioTooBig);
+                        condstr = shorten(condstr, charactersToAimFor);
+                        metrics = ctx.measureText(condstr);
                     }
+                    ctx.fillStyle = "black";
+                    let textBoxX = (xpos + containedSize / 2) - (metrics.width / 2) + margin;
+                    let textBoxY = ypos + fontSize;
+                    ctx.fillStyle = "#00ff00";
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 1;
+                    if (!isIcon) ctx.strokeText(condstr, textBoxX, textBoxY + padding + padding);
+                    if (!isIcon) ctx.fillText(condstr, textBoxX, textBoxY + padding + padding);
                     ctx.save();
                 }
 
