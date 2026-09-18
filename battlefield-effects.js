@@ -277,7 +277,7 @@ class BattlefieldEffects extends HTMLElement {
                 let op = document.createElement("option"); op.text = o; html.shape.appendChild(op); });
             "█▓▒░".split("").forEach(o => {
                 let op = document.createElement("option"); op.text = o; html.opacity.appendChild(op); });
-            "0ft,5ft,10ft,15ft,20ft,30ft".split(",").forEach(o => {
+            "0ft,5ft,10ft,15ft,20ft,30ft,40ft".split(",").forEach(o => {
                 let op = document.createElement("option"); op.text = o; html.size.appendChild(op); });
             html.remove.textContent = "×";
 
@@ -615,7 +615,7 @@ class BattlefieldEffects extends HTMLElement {
             let fn = {"◯": bfe.EFFECTS.CIRCLE , "□": bfe.EFFECTS.SQUARE,
                 "ʍ": bfe.EFFECTS.FIRE}[ne.shape];
             let opacity = {"░": 0.25, "▒": 0.5, "▓": 0.75, "█": 1.0}[ne.opacity];
-            let size = {"0ft": 0, "5ft": 1, "10ft": 2, "15ft": 3, "20ft": 4, "30ft": 6}[ne.size];
+            let size = {"0ft": 0, "5ft": 1, "10ft": 2, "15ft": 3, "20ft": 4, "30ft": 6, "40ft": 8}[ne.size];
             fn(ctx, ne.colour, size, opacity, cxp, cyp, gridSettings.size, doNext);
             ctx.globalAlpha = 1.0;
         }
