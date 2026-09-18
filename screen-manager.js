@@ -95,6 +95,15 @@ class ScreenManager extends HTMLElement {
         } else {
             if (this.toolsElement.isMapId(location.search.substr(1))) {
                 // do nothing; this is a legit map ID and will be displayed
+                // so we, the map list, are just invisible
+                // but we set the page title
+                let mapname = await this.toolsElement.load("name");
+                let eltitle = document.querySelector("head title");
+                if (!eltitle) {
+                    eltitle = document.createElement("title");
+                    document.querySelector("head").append(eltitle);
+                }
+                eltitle.textContent = `pbpmap : ${mapname}`;
             } else {
                 return await this.showList();
             }
